@@ -19,17 +19,23 @@ class DashboardController extends Controller
         $query = NasaAgroData::query()->orderBy('date');
 
         if (! empty($validated['lat']) && ! empty($validated['lon'])) {
-            $query->where('lat', $validated['lat'])->where('lon', $validated['lon']);
+            $query->near((float) $validated['lat'], (float) $validated['lon']);
         }
 
         $records = $query->limit(365)->get();
+        $latest = $records->last();
+        $recent = $records->slice(-5)->reverse()->values();
 
         return view('dashboard', [
             'labels' => $records->map(fn ($r) => $r->date->format('Y-m-d'))->all(),
             'ndvi' => $records->map(fn ($r) => $r->ndvi_value)->all(),
             'temps' => $records->map(fn ($r) => $r->temp)->all(),
+            'precips' => $records->map(fn ($r) => $r->precip)->all(),
             'lat' => $validated['lat'] ?? null,
             'lon' => $validated['lon'] ?? null,
+            'latest' => $latest,
+            'recent' => $recent,
+            'total' => $records->count(),
             'alerts' => Alert::query()->latest()->limit(5)->get(),
         ]);
     }

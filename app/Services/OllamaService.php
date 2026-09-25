@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
@@ -29,6 +30,12 @@ class OllamaService
             $response->throw();
         } catch (RequestException $e) {
             throw new \RuntimeException($this->friendlyError($e, $model), previous: $e);
+        } catch (ConnectionException $e) {
+            throw new \RuntimeException(
+                'Ollama tardó demasiado o no responde en '.config('services.ollama.host').'. '
+                .'Verifica que `ollama serve` esté corriendo y que haya RAM libre (el modelo de 4 GB carga lento si el equipo está exigido).',
+                previous: $e
+            );
         }
 
         return (string) ($response->json('message.content') ?? '');

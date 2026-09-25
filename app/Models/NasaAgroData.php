@@ -35,6 +35,16 @@ class NasaAgroData extends Model
     }
 
     /**
+     * Filtro por cercanía: evita que una coincidencia decimal exacta
+     * deje los paneles vacíos al filtrar por lat/lon.
+     */
+    public function scopeNear($query, float $lat, float $lon, float $delta = 0.05)
+    {
+        return $query->whereBetween('lat', [$lat - $delta, $lat + $delta])
+            ->whereBetween('lon', [$lon - $delta, $lon + $delta]);
+    }
+
+    /**
      * Inserción masiva eficiente según agents.md.
      *
      * @param  array<int, array<string, mixed>>  $rows

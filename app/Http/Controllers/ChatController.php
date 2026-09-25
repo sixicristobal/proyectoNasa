@@ -67,7 +67,7 @@ class ChatController extends Controller
         $query = NasaAgroData::query()->orderByDesc('date')->limit(7);
 
         if ($lat !== null && $lon !== null) {
-            $query->where('lat', $lat)->where('lon', $lon);
+            $query->near($lat, $lon);
         }
 
         $rows = $query->get();

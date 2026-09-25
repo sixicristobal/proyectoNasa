@@ -1,0 +1,51 @@
+[
+  {
+    "ts": "2026-09-25T01:26:18.605Z",
+    "agent": "plan",
+    "member": null,
+    "agentType": null,
+    "team": null,
+    "model": {
+      "id": "muse-spark-1.3-contributor-free",
+      "providerID": "opencode"
+    },
+    "action": "started",
+    "sessionId": "ses_f29d45f2dffeQP2KkIpvi5Lx2K"
+  },
+  {
+    "ts": "2026-09-25T01:26:48.606Z",
+    "agent": "plan",
+    "member": null,
+    "team": null,
+    "model": {
+      "id": "muse-spark-1.3-contributor-free",
+      "providerID": "opencode"
+    },
+    "action": "unmatched-session",
+    "sessionId": "ses_f29d45f2dffeQP2KkIpvi5Lx2K",
+    "warning": "Session started with no matching team_spawn record. Agent identity may be inaccurate."
+  },
+  {
+    "ts": "2026-09-25T01:27:15.356Z",
+    "agent": "plan",
+    "member": null,
+    "agentType": null,
+    "team": null,
+    "model": {
+      "id": "muse-spark-1.3-contributor-free",
+      "providerID": "opencode"
+    },
+    "action": "completed",
+    "filesEdited": 0,
+    "skills": [],
+    "intendedSkills": [],
+    "usage": {
+      "inputTokensReported": null,
+      "outputTokensReported": null,
+      "totalTokensReported": null,
+      "tokenEstimateLow": 5747,
+      "tokenEstimateHigh": 11496,
+      "method": "heuristic"
+    }
+  }
+]

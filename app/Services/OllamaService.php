@@ -11,6 +11,18 @@ class OllamaService
     public function chat(array $messages): string
     {
         $model = (string) config('services.ollama.model', 'llama3.2');
+        $webhook = (string) config('services.n8n.webhook');
+
+        // conexion al webhook de n8n
+        if ($webhook !== '') {
+            $response = Http::timeout(180)->post($webhook, [
+                'messages' => $messages,
+                'source' => 'reforestation',
+            ]);
+            $response->throw();
+
+            return (string) ($response->json('response') ?? $response->body());
+        }
 
         try {
             $response = Http::timeout(180)->post(

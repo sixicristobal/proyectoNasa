@@ -47,6 +47,10 @@ return [
         'key' => env('DEEPSEEK_API_KEY'),
     ],
 
+    'n8n' => [
+        'webhook' => env('N8N_WEBHOOK_URL'),
+    ],
+
     'llm' => [
         'driver' => env('LLM_DRIVER', 'gemini'),
     ],

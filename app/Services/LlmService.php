@@ -11,6 +11,10 @@ class LlmService
         $prompt = "Eres un ingeniero agrónomo en Paraguay. Tema: {$topic} (siembra, riego o rotación de cultivos). "
             ."Responde en español, conciso y práctico para pequeños productores.\n\nDatos climáticos recientes:\n{$context}";
 
+        if (config('services.llm.driver') === 'n8n') {
+            return $this->viaN8n($prompt);
+        }
+
         return config('services.llm.driver', 'gemini') === 'deepseek'
             ? $this->viaDeepSeek($prompt)
             : $this->viaGemini($prompt);
@@ -51,5 +55,21 @@ class LlmService
         $response->throw();
 
         return (string) ($response->json('choices.0.message.content') ?? '');
+    }
+
+    protected function viaN8n(string $prompt): string
+    {
+        $webhook = (string) config('services.n8n.webhook');
+        abort_if($webhook === '', 503, 'Falta N8N_WEBHOOK_URL en tu .env.');
+
+        $response = Http::timeout(180)->post($webhook, [
+            'prompt' => $prompt,
+            'source' => 'recommendation',
+        ]);
+
+        $response->throw();
+
+        // n8n should return {"response": "..."} in the Respond to Webhook node
+        return (string) ($response->json('response') ?? $response->body());
     }
 }

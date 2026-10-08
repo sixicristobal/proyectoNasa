@@ -10,3 +10,9 @@ Route::get('/user', function (Request $request) {
 
 // Webhook n8n -> Laravel (flujo: Cron -> MySQL -> Code -> Gemini -> HTTP POST aquí).
 Route::post('/n8n/alerts', [N8nAlertController::class, 'store']);
+
+// Endpoint para que n8n pueda disparar la sincronización de NASA
+Route::post('/n8n/sync-nasa', function () {
+    \Illuminate\Support\Facades\Artisan::call('nasa:sync');
+    return response()->json(['status' => 'success', 'message' => 'NASA data synced']);
+});

@@ -21,7 +21,7 @@ class AlertFactory extends Factory
             'risk_type' => fake()->randomElement(['sequia', 'helada', 'lluvia_extrema']),
             'message' => fake()->sentence(12),
             'data_date' => fake()->date(),
-            'source' => 'n8n-gemini',
+            'source' => 'laravel-ollama',
         ];
     }
 }

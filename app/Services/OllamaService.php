@@ -8,29 +8,25 @@ use Illuminate\Support\Facades\Http;
 
 class OllamaService
 {
-    public function chat(array $messages): string
+    /**
+     * @param  array<int, array{role: string, content: string}>  $messages
+     * @param  int  $timeout  segundos (180 web, 300+ en jobs en 2do plano)
+     */
+    public function chat(array $messages, int $timeout = 180): string
     {
-        $model = (string) config('services.ollama.model', 'llama3.2');
-        $webhook = (string) config('services.n8n.webhook');
-
-        // conexion al webhook de n8n
-        if ($webhook !== '') {
-            $response = Http::timeout(180)->post($webhook, [
-                'messages' => $messages,
-                'source' => 'reforestation',
-            ]);
-            $response->throw();
-
-            return (string) ($response->json('response') ?? $response->body());
-        }
+        $model = (string) config('services.ollama.model', 'llama3.2:3b');
+        $host = rtrim((string) config('services.ollama.host', 'http://100.107.189.14:11434'), '/');
 
         try {
-            $response = Http::timeout(180)->post(
-                rtrim((string) config('services.ollama.host'), '/').'/api/chat',
+            $response = Http::timeout($timeout)->post(
+                $host.'/api/chat',
                 [
                     'model' => $model,
                     'messages' => $messages,
                     'stream' => false,
+                    // keep_alive evita la carga en frío (~2GB) en cada request:
+                    // el servidor casero es CPU y cargar tarda + inferencia ~7 tok/s.
+                    'keep_alive' => '24h',
                     'options' => [
                         'temperature' => 0.2,
                         'num_ctx' => 4096,
@@ -44,8 +40,8 @@ class OllamaService
             throw new \RuntimeException($this->friendlyError($e, $model), previous: $e);
         } catch (ConnectionException $e) {
             throw new \RuntimeException(
-                'Ollama tardó demasiado o no responde en '.config('services.ollama.host').'. '
-                .'Verifica que `ollama serve` esté corriendo y que haya RAM libre (el modelo de 4 GB carga lento si el equipo está exigido).',
+                'Ollama (Docker por Tailscale) tardó demasiado o no responde en '.config('services.ollama.host').'. '
+                .'Verifica en tu servidor casero: `docker ps | grep ollama`, que Tailscale esté conectado (`tailscale status`) y que el modelo esté descargado (`docker exec ollama ollama pull '.config('services.ollama.model').'`).',
                 previous: $e
             );
         }
@@ -85,11 +81,11 @@ class OllamaService
                 ? 'No se pudo listar modelos instalados.'
                 : 'Instalados: '.implode(', ', $installed).'.';
 
-            return "El modelo Ollama '{$model}' no está instalado en tu PC. Ejecuta `ollama pull {$model}` o cambia OLLAMA_MODEL en tu .env. {$hint}";
+            return "El modelo Ollama '{$model}' no está en tu Docker. Ejecuta `docker exec <contenedor> ollama pull {$model}` o cambia OLLAMA_MODEL en tu .env. {$hint}";
         }
 
         if ($e->getCode() === 0 || $status === null) {
-            return 'No se pudo conectar con Ollama en '.config('services.ollama.host').'. Verifica que `ollama serve` esté corriendo.';
+            return 'No se pudo conectar con Ollama en '.config('services.ollama.host').'. Verifica Tailscale (`tailscale status`) y que el puerto 11434 esté expuesto en el contenedor.';
         }
 
         return 'Ollama devolvió HTTP '.$status.': '.$body;

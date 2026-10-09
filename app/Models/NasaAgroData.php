@@ -16,8 +16,12 @@ class NasaAgroData extends Model
         'lon',
         'date',
         'temp',
+        'temp_max',
+        'temp_min',
         'precip',
         'humidity',
+        'wind_speed',
+        'solar_radiation',
         'ndvi_value',
     ];
 
@@ -28,8 +32,12 @@ class NasaAgroData extends Model
             'lon' => 'decimal:7',
             'date' => 'date',
             'temp' => 'float',
+            'temp_max' => 'float',
+            'temp_min' => 'float',
             'precip' => 'float',
             'humidity' => 'float',
+            'wind_speed' => 'float',
+            'solar_radiation' => 'float',
             'ndvi_value' => 'float',
         ];
     }
@@ -58,7 +66,7 @@ class NasaAgroData extends Model
         return static::upsert(
             $rows,
             uniqueBy: ['lat', 'lon', 'date'],
-            update: ['temp', 'precip', 'humidity', 'ndvi_value', 'updated_at']
+            update: ['temp', 'temp_max', 'temp_min', 'precip', 'humidity', 'wind_speed', 'solar_radiation', 'ndvi_value', 'updated_at']
         );
     }
 }

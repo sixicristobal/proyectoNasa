@@ -22,8 +22,12 @@ class NasaAgroDataFactory extends Factory
             'lon' => fake()->longitude(-62.7, -54.3),
             'date' => fake()->date(),
             'temp' => fake()->randomFloat(2, -2, 42),
+            'temp_max' => fake()->randomFloat(2, 0, 44),
+            'temp_min' => fake()->randomFloat(2, -5, 30),
             'precip' => fake()->randomFloat(2, 0, 150),
             'humidity' => fake()->randomFloat(2, 10, 100),
+            'wind_speed' => fake()->randomFloat(2, 0, 25),
+            'solar_radiation' => fake()->randomFloat(2, 0, 30),
             'ndvi_value' => fake()->randomFloat(4, -0.2, 1),
         ];
     }

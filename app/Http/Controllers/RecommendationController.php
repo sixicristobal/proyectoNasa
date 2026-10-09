@@ -51,13 +51,16 @@ class RecommendationController extends Controller
         }
 
         return $rows->map(fn ($r) => sprintf(
-            'Fecha %s en (%.4F, %.4F): temp %.1F C, lluvia %.1F mm, humedad %.0F %%, NDVI %s.',
+            'Fecha %s en (%.4F, %.4F): temp %.1F C (máx %s, mín %s), lluvia %.1F mm, humedad %.0F %%, viento %s, NDVI %s.',
             $r->date->format('Y-m-d'),
             (float) $r->lat,
             (float) $r->lon,
             (float) $r->temp,
+            $r->temp_max !== null ? number_format((float) $r->temp_max, 1).' C' : 's/d',
+            $r->temp_min !== null ? number_format((float) $r->temp_min, 1).' C' : 's/d',
             (float) $r->precip,
             (float) $r->humidity,
+            $r->wind_speed !== null ? number_format((float) $r->wind_speed * 3.6, 1).' km/h' : 's/d',
             $r->ndvi_value !== null ? number_format((float) $r->ndvi_value, 3) : 'sin dato'
         ))->implode("\n");
     }

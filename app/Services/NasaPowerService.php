@@ -10,12 +10,19 @@ class NasaPowerService
     protected string $baseUrl = 'https://power.larc.nasa.gov/api/temporal/daily/point';
 
     /**
+     * Parámetros AG de NASA POWER:
+     * T2M/T2M_MAX/T2M_MIN (temp), PRECTOTCORR (lluvia), RH2M (humedad),
+     * WS2M (viento m/s, para tormentas), ALLSKY_SFC_SW_DWN (radiación solar).
+     */
+    protected string $parameters = 'T2M,T2M_MAX,T2M_MIN,PRECTOTCORR,RH2M,WS2M,ALLSKY_SFC_SW_DWN';
+
+    /**
      * @return array<string, array<string, float|null>>
      */
     public function fetchDaily(float $lat, float $lon, string $start, string $end): array
     {
         $response = Http::timeout(60)->get($this->baseUrl, [
-            'parameters' => 'T2M,PRECTOTCORR,RH2M',
+            'parameters' => $this->parameters,
             'community' => 'AG',
             'longitude' => $lon,
             'latitude' => $lat,
@@ -34,8 +41,12 @@ class NasaPowerService
         $parameters = $this->fetchDaily($lat, $lon, $start, $end);
 
         $temps = $parameters['T2M'] ?? [];
+        $tempsMax = $parameters['T2M_MAX'] ?? [];
+        $tempsMin = $parameters['T2M_MIN'] ?? [];
         $precips = $parameters['PRECTOTCORR'] ?? [];
         $humidities = $parameters['RH2M'] ?? [];
+        $winds = $parameters['WS2M'] ?? [];
+        $solar = $parameters['ALLSKY_SFC_SW_DWN'] ?? [];
 
         $rows = [];
         foreach ($temps as $rawDate => $temp) {
@@ -45,8 +56,12 @@ class NasaPowerService
                 'lon' => $lon,
                 'date' => $date,
                 'temp' => $this->nullIfFill($temp),
+                'temp_max' => $this->nullIfFill($tempsMax[$rawDate] ?? null),
+                'temp_min' => $this->nullIfFill($tempsMin[$rawDate] ?? null),
                 'precip' => $this->nullIfFill($precips[$rawDate] ?? null),
                 'humidity' => $this->nullIfFill($humidities[$rawDate] ?? null),
+                'wind_speed' => $this->nullIfFill($winds[$rawDate] ?? null),
+                'solar_radiation' => $this->nullIfFill($solar[$rawDate] ?? null),
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

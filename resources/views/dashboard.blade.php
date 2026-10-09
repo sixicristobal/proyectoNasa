@@ -55,6 +55,18 @@
 
 <main class="container pt-5 mt-4">
 
+    {{-- Resultado actualización manual --}}
+    @if (session('refresh_status'))
+        <div class="alert alert-success my-2" role="alert">
+            ✅ {{ session('refresh_status') }}
+        </div>
+    @endif
+    @if (session('refresh_error'))
+        <div class="alert alert-danger my-2" role="alert">
+            ⚠️ {{ session('refresh_error') }}
+        </div>
+    @endif
+
     {{-- Filtro parcela --}}
     <form method="GET" action="{{ route('dashboard') }}" class="row g-2 my-3">
         <div class="col-5 col-lg-3">
@@ -66,10 +78,11 @@
         <div class="col-2 col-lg-2">
             <button class="btn btn-success bg-fs-green border-0 w-100">Ver</button>
         </div>
-        <div class="col-12 col-lg-4 d-flex gap-2 justify-content-lg-end">
+        <div class="col-12 col-lg-4 d-flex gap-2 justify-content-lg-end flex-wrap">
             <a href="{{ route('chat.index') }}" class="btn btn-sm btn-outline-success">Asistente</a>
             <a href="{{ route('recommendations.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Recomendaciones</a>
             <a href="{{ route('reforestation.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Reforestación</a>
+            <a href="{{ route('imagery.index') }}" class="btn btn-sm btn-outline-dark">🛰️ Imágenes</a>
         </div>
     </form>
 
@@ -86,6 +99,18 @@
         </div>
         <div class="col-6 col-lg-3">
             <a href="#alertas" class="btn btn-outline-secondary w-100 py-3"><span class="material-symbols-outlined d-block">cloud</span>Alertas</a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a href="{{ route('imagery.index') }}" class="btn btn-outline-dark w-100 py-3"><span class="material-symbols-outlined d-block">satellite_alt</span>Imágenes NASA</a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <form method="POST" action="{{ route('data.refresh') }}">
+                @csrf
+                <input type="hidden" name="lat" value="{{ $lat }}">
+                <input type="hidden" name="lon" value="{{ $lon }}">
+                <button class="btn btn-warning w-100 py-3"><span class="material-symbols-outlined d-block">refresh</span>Actualizar datos</button>
+            </form>
+            <small class="text-muted d-block text-center mt-1">Sincroniza NASA → revisa alertas con IA</small>
         </div>
     </div>
 
@@ -128,6 +153,69 @@
         </div>
 
         <div class="row g-2 mb-3">
+            {{-- Lluvia acumulada mes --}}
+            <div class="col-6">
+                <div class="card fs-card h-100 bg-fs-sand">
+                    <div class="card-body">
+                        <small class="text-uppercase text-muted">Lluvia acumulada (30 días) <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
+                        <div class="fs-kpi">{{ number_format($monthAccum, 1) }}<small class="fs-6 fw-normal">mm</small></div>
+                        <span class="badge bg-primary">{{ $monthRainDays }} días con lluvia</span>
+                    </div>
+                </div>
+            </div>
+            {{-- Viento actual --}}
+            <div class="col-6">
+                <div class="card fs-card h-100">
+                    <div class="card-body">
+                        <small class="text-uppercase text-muted">Viento <span class="material-symbols-outlined fs-6">air</span></small>
+                        <div class="fs-kpi">{{ $latest->wind_speed !== null ? number_format((float) $latest->wind_speed * 3.6, 0) : '—' }}<small class="fs-6 fw-normal">km/h</small></div>
+                        <span class="badge bg-fs-soft text-success">
+                            @if ($latest->temp_max !== null || $latest->temp_min !== null)
+                                Máx {{ $latest->temp_max !== null ? number_format($latest->temp_max, 1).'°' : '—' }} · Mín {{ $latest->temp_min !== null ? number_format($latest->temp_min, 1).'°' : '—' }}
+                            @else
+                                {{ $latest->date->format('Y-m-d') }}
+                            @endif
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+            {{-- Lluvia del mes --}}
+            <div class="col-12 col-lg-8">
+                <div class="card fs-card h-100">
+                    <div class="card-body">
+                        <h2 class="h6">Lluvia diaria — últimos 30 días con dato (mm)</h2>
+                        <canvas id="precipChart" height="140"></canvas>
+                    </div>
+                </div>
+            </div>
+            {{-- Eventos de lluvia --}}
+            <div class="col-12 col-lg-4">
+                <div class="card fs-card h-100">
+                    <div class="card-body">
+                        <h2 class="h6">Lluvias y tormentas del mes (≥10 mm)</h2>
+                        <ul class="list-group list-group-flush">
+                            @forelse ($rainEvents as $e)
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    <span>{{ $e->date->format('Y-m-d') }}</span>
+                                    <span>
+                                        <span class="badge {{ (float) $e->precip >= 50 ? 'bg-danger' : ((float) $e->precip >= 20 ? 'bg-warning text-dark' : 'bg-info text-dark') }}">
+                                            {{ number_format($e->precip, 1) }} mm
+                                        </span>
+                                    </span>
+                                </li>
+                            @empty
+                                <li class="list-group-item px-0 text-muted">Sin eventos ≥10 mm en el mes.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-2 mb-3">
             {{-- Curva NDVI --}}
             <div class="col-12 col-lg-8">
                 <div class="card fs-card h-100">
@@ -160,12 +248,24 @@
     @endif
 
     {{-- Alertas reales --}}
+    @php
+        $severity = [
+            'lluvia_extrema' => 'bg-danger',
+            'inundacion_encharcamiento' => 'bg-danger',
+            'lluvia_fuerte' => 'bg-warning text-dark',
+            'tormenta_probable' => 'bg-warning text-dark',
+            'helada' => 'bg-info text-dark',
+            'sequia' => 'bg-secondary',
+            'estres_hidrico' => 'bg-secondary',
+        ];
+    @endphp
     <div class="card fs-card mb-3" id="alertas">
-        <div class="card-header bg-transparent">Últimas alertas (n8n + Gemini)</div>
+        <div class="card-header bg-transparent">Últimas alertas (Laravel + Ollama)</div>
         <ul class="list-group list-group-flush">
             @forelse ($alerts as $alert)
                 <li class="list-group-item">
-                    <strong>{{ $alert->risk_type }}</strong> · {{ $alert->created_at->format('Y-m-d H:i') }}
+                    <span class="badge {{ $severity[$alert->risk_type] ?? 'bg-secondary' }}">{{ str_replace('_', ' ', $alert->risk_type) }}</span>
+                    <small class="text-muted">· {{ $alert->created_at->format('Y-m-d H:i') }}{{ $alert->data_date ? ' · dato '.$alert->data_date->format('Y-m-d') : '' }}</small>
                     <br>{{ $alert->message }}
                 </li>
             @empty
@@ -198,6 +298,16 @@
             ]
         },
         options: { scales: { y: {min: -0.2, max: 1}, y1: {position: 'right', grid: {drawOnChartArea: false}}} }
+    });
+    new Chart(document.getElementById('precipChart'), {
+        type: 'bar',
+        data: {
+            labels: @json($monthLabels),
+            datasets: [
+                {label: 'Lluvia (mm)', data: @json($monthPrecips), backgroundColor: '#2f7fe0'}
+            ]
+        },
+        options: { scales: { y: {beginAtZero: true}} }
     });
 </script>
 @endif

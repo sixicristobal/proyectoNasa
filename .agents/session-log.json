@@ -96,5 +96,54 @@
       "tokenEstimateHigh": 142949,
       "method": "heuristic"
     }
+  },
+  {
+    "ts": "2026-10-09T00:45:17.556Z",
+    "agent": "build",
+    "member": null,
+    "agentType": null,
+    "team": null,
+    "model": {
+      "id": "muse-spark-1.3-contributor-free",
+      "providerID": "opencode"
+    },
+    "action": "started",
+    "sessionId": "ses_ee1e0e49effe2NTon4qL3UH2Wq"
+  },
+  {
+    "ts": "2026-10-09T00:45:47.573Z",
+    "agent": "build",
+    "member": null,
+    "team": null,
+    "model": {
+      "id": "muse-spark-1.3-contributor-free",
+      "providerID": "opencode"
+    },
+    "action": "unmatched-session",
+    "sessionId": "ses_ee1e0e49effe2NTon4qL3UH2Wq",
+    "warning": "Session started with no matching team_spawn record. Agent identity may be inaccurate."
+  },
+  {
+    "ts": "2026-10-09T00:46:27.767Z",
+    "agent": "build",
+    "member": null,
+    "agentType": null,
+    "team": null,
+    "model": {
+      "id": "muse-spark-1.3-contributor-free",
+      "providerID": "opencode"
+    },
+    "action": "completed",
+    "filesEdited": 0,
+    "skills": [],
+    "intendedSkills": [],
+    "usage": {
+      "inputTokensReported": null,
+      "outputTokensReported": null,
+      "totalTokensReported": null,
+      "tokenEstimateLow": 43055,
+      "tokenEstimateHigh": 86112,
+      "method": "heuristic"
+    }
   }
 ]

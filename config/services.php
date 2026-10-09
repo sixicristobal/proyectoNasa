@@ -35,24 +35,12 @@ return [
     ],
 
     'ollama' => [
-        'host' => env('OLLAMA_HOST', 'http://127.0.0.1:11434'),
-        'model' => env('OLLAMA_MODEL', 'llama3.2'),
-    ],
-
-    'gemini' => [
-        'key' => env('GEMINI_API_KEY'),
-    ],
-
-    'deepseek' => [
-        'key' => env('DEEPSEEK_API_KEY'),
-    ],
-
-    'n8n' => [
-        'webhook' => env('N8N_WEBHOOK_URL'),
+        'host' => env('OLLAMA_HOST', 'http://100.107.189.14:11434'),
+        'model' => env('OLLAMA_MODEL', 'llama3.2:3b'),
     ],
 
     'llm' => [
-        'driver' => env('LLM_DRIVER', 'gemini'),
+        'driver' => env('LLM_DRIVER', 'ollama'),
     ],
 
     'slack' => [

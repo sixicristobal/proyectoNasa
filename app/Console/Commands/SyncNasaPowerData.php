@@ -8,7 +8,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('nasa:sync {--lat=-25.2637} {--lon=-57.5759} {--days=7}')]
-#[Description('Sincroniza NASA POWER (T2M, PRECTOTCORR, RH2M) con upsert')]
+#[Description('Sincroniza NASA POWER (T2M, T2M_MAX/MIN, PRECTOTCORR, RH2M, WS2M, solar) con upsert')]
 class SyncNasaPowerData extends Command
 {
     public function handle(NasaPowerService $power): int

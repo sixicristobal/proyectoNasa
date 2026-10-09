@@ -79,13 +79,16 @@ class ChatController extends Controller
         $lines = [];
         foreach ($rows as $row) {
             $lines[] = sprintf(
-                'Fecha %s en (%.4F, %.4F): temp %.1F C, lluvia %.1F mm, humedad %.0F %%, NDVI %s.',
+                'Fecha %s en (%.4F, %.4F): temp %.1F C (máx %s, mín %s), lluvia %.1F mm, humedad %.0F %%, viento %s, NDVI %s.',
                 $row->date->format('Y-m-d'),
                 (float) $row->lat,
                 (float) $row->lon,
                 (float) $row->temp,
+                $row->temp_max !== null ? number_format((float) $row->temp_max, 1).' C' : 's/d',
+                $row->temp_min !== null ? number_format((float) $row->temp_min, 1).' C' : 's/d',
                 (float) $row->precip,
                 (float) $row->humidity,
+                $row->wind_speed !== null ? number_format((float) $row->wind_speed * 3.6, 1).' km/h' : 's/d',
                 $row->ndvi_value !== null ? number_format((float) $row->ndvi_value, 3) : 'sin dato'
             );
         }

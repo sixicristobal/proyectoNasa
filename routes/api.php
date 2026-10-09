@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\N8nAlertController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -8,11 +7,17 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Webhook n8n -> Laravel (flujo: Cron -> MySQL -> Code -> Gemini -> HTTP POST aquí).
-Route::post('/n8n/alerts', [N8nAlertController::class, 'store']);
+// NOTA: flujo n8n eliminado. La ingesta la hace el Scheduler de Laravel
+// (routes/console.php -> nasa:sync diario) y las alertas las genera
+// el comando local `php artisan agro:check-alerts` con Ollama.
+// Se dejan estas rutas solo como compatibilidad deshabilitada:
+// responder 410 Gone si algún workflow viejo de n8n sigue llamando.
+Route::post('/n8n/alerts', fn () => response()->json([
+    'ok' => false,
+    'error' => 'Flujo n8n eliminado. Usa el Scheduler Laravel + Ollama (ver INSTRUCCION.md).',
+], 410));
 
-// Endpoint para que n8n pueda disparar la sincronización de NASA
-Route::post('/n8n/sync-nasa', function () {
-    \Illuminate\Support\Facades\Artisan::call('nasa:sync');
-    return response()->json(['status' => 'success', 'message' => 'NASA data synced']);
-});
+Route::post('/n8n/sync-nasa', fn () => response()->json([
+    'ok' => false,
+    'error' => 'Flujo n8n eliminado. Usa `php artisan nasa:sync` o el Scheduler.',
+], 410));

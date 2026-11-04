@@ -1,0 +1,108 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: nasa-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: field_shit
+      MYSQL_USER: sixinio
+      MYSQL_PASSWORD: "123456"
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - nasa
+
+  app:
+    build: .
+    container_name: nasa-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      APP_DEBUG: "false"
+      # php -S es mono-proceso: sin workers la app queda colgada mientras
+      # Ollama tarda minutos en inferir en el servidor casero.
+      PHP_CLI_SERVER_WORKERS: "4"
+    ports:
+      - "${APP_BIND_IP:-127.0.0.1}:${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - vendor:/app/vendor
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/up || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    # --no-reload es obligario para que artisan respete PHP_CLI_SERVER_WORKERS
+    # (sin él, php -S queda mono-proceso y la app se congela durante la inferencia).
+    command: sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000 --no-reload"
+    networks:
+      - nasa
+
+  scheduler:
+    build: .
+    container_name: nasa-scheduler
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      APP_DEBUG: "false"
+    volumes:
+      - .:/app
+      - vendor:/app/vendor
+    depends_on:
+      app:
+        condition: service_healthy
+    command: php artisan schedule:work
+    networks:
+      - nasa
+
+  queue:
+    build: .
+    container_name: nasa-queue
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      APP_DEBUG: "false"
+    volumes:
+      - .:/app
+      - vendor:/app/vendor
+    depends_on:
+      app:
+        condition: service_healthy
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=1900
+    networks:
+      - nasa
+
+  test:
+    build: .
+    profiles: ["test"]
+    environment:
+      APP_ENV: testing
+    volumes:
+      - .:/app
+      - vendor:/app/vendor
+    command: php artisan test
+    networks:
+      - nasa
+
+volumes:
+  dbdata:
+  vendor:
+
+networks:
+  nasa:
+    driver: bridge

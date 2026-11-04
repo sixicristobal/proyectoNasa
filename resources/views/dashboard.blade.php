@@ -66,23 +66,48 @@
             ⚠️ {{ session('refresh_error') }}
         </div>
     @endif
+    @if ($errors->any())
+        <div class="alert alert-warning my-2" role="alert">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    {{-- Filtro parcela --}}
-    <form method="GET" action="{{ route('dashboard') }}" class="row g-2 my-3">
-        <div class="col-5 col-lg-3">
-            <input type="number" step="any" name="lat" class="form-control" placeholder="Lat (-25.2637)" value="{{ $lat }}">
+    {{-- Filtro parcela + rango de fechas --}}
+    <form method="GET" action="{{ route('dashboard') }}" id="range-form" class="my-3">
+        <div class="row g-2">
+            <div class="col-5 col-lg-3">
+                <input type="number" step="any" name="lat" class="form-control" placeholder="Lat (-25.2637)" value="{{ $lat }}">
+            </div>
+            <div class="col-5 col-lg-3">
+                <input type="number" step="any" name="lon" class="form-control" placeholder="Lon (-57.5759)" value="{{ $lon }}">
+            </div>
+            <div class="col-2 col-lg-2">
+                <button class="btn btn-success bg-fs-green border-0 w-100">Ver</button>
+            </div>
+            <div class="col-12 col-lg-4 d-flex gap-2 justify-content-lg-end flex-wrap">
+                <a href="{{ route('chat.index') }}" class="btn btn-sm btn-outline-success">Asistente</a>
+                <a href="{{ route('recommendations.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Recomendaciones</a>
+                <a href="{{ route('reforestation.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Reforestación</a>
+                <a href="{{ route('imagery.index') }}" class="btn btn-sm btn-outline-dark">🛰️ Imágenes</a>
+            </div>
         </div>
-        <div class="col-5 col-lg-3">
-            <input type="number" step="any" name="lon" class="form-control" placeholder="Lon (-57.5759)" value="{{ $lon }}">
-        </div>
-        <div class="col-2 col-lg-2">
-            <button class="btn btn-success bg-fs-green border-0 w-100">Ver</button>
-        </div>
-        <div class="col-12 col-lg-4 d-flex gap-2 justify-content-lg-end flex-wrap">
-            <a href="{{ route('chat.index') }}" class="btn btn-sm btn-outline-success">Asistente</a>
-            <a href="{{ route('recommendations.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Recomendaciones</a>
-            <a href="{{ route('reforestation.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Reforestación</a>
-            <a href="{{ route('imagery.index') }}" class="btn btn-sm btn-outline-dark">🛰️ Imágenes</a>
+        <div class="row g-2 mt-0">
+            <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
+                <small class="text-uppercase text-muted">Rango</small>
+                <input type="date" name="desde" class="form-control form-control-sm" style="width:auto" value="{{ $desde }}" aria-label="Desde">
+                <span class="text-muted">→</span>
+                <input type="date" name="hasta" class="form-control form-control-sm" style="width:auto" value="{{ $hasta }}" aria-label="Hasta">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Rangos rápidos">
+                    <button type="button" class="btn btn-outline-secondary" data-days="7">7 días</button>
+                    <button type="button" class="btn btn-outline-secondary" data-days="30">30 días</button>
+                    <button type="button" class="btn btn-outline-secondary" data-days="90">90 días</button>
+                    <button type="button" class="btn btn-outline-secondary" data-days="clear">Todo</button>
+                </div>
+            </div>
         </div>
     </form>
 
@@ -101,6 +126,9 @@
             <a href="#alertas" class="btn btn-outline-secondary w-100 py-3"><span class="material-symbols-outlined d-block">cloud</span>Alertas</a>
         </div>
         <div class="col-6 col-lg-3">
+            <a href="{{ route('rotations.index') }}" class="btn btn-outline-success w-100 py-3"><span class="material-symbols-outlined d-block">crop_rotation</span>Rotaciones</a>
+        </div>
+        <div class="col-6 col-lg-3">
             <a href="{{ route('imagery.index') }}" class="btn btn-outline-dark w-100 py-3"><span class="material-symbols-outlined d-block">satellite_alt</span>Imágenes NASA</a>
         </div>
         <div class="col-6 col-lg-3">
@@ -108,9 +136,19 @@
                 @csrf
                 <input type="hidden" name="lat" value="{{ $lat }}">
                 <input type="hidden" name="lon" value="{{ $lon }}">
-                <button class="btn btn-warning w-100 py-3"><span class="material-symbols-outlined d-block">refresh</span>Actualizar datos</button>
+                <select name="days" class="form-select form-select-sm mb-1" aria-label="Rango a sincronizar">
+                    <option value="10" selected>Últimos 10 días</option>
+                    <option value="30">Últimos 30 días</option>
+                    <option value="90">Últimos 90 días</option>
+                    <option value="365">Últimos 365 días</option>
+                </select>
+                <div class="d-flex gap-1 mb-1">
+                    <input type="date" name="desde" class="form-control form-control-sm" aria-label="Desde (opcional)">
+                    <input type="date" name="hasta" class="form-control form-control-sm" aria-label="Hasta (opcional)">
+                </div>
+                <button class="btn btn-warning w-100 py-2"><span class="material-symbols-outlined fs-6">refresh</span>Actualizar datos</button>
             </form>
-            <small class="text-muted d-block text-center mt-1">Sincroniza NASA → revisa alertas con IA</small>
+            <small class="text-muted d-block text-center mt-1">Sincroniza NASA → revisa alertas con IA. Las fechas exactas (desde/hasta) tienen prioridad sobre el rango.</small>
         </div>
     </div>
 
@@ -121,7 +159,7 @@
                 <div class="card fs-card h-100">
                     <div class="card-body">
                         <small class="text-uppercase text-muted">Índice NDVI <span class="material-symbols-outlined fs-6 fs-green">trending_up</span></small>
-                        <div class="fs-kpi">{{ $latest->ndvi_value !== null ? number_format($latest->ndvi_value, 2) : '—' }}</div>
+                        <div class="fs-kpi" id="kpi-ndvi">{{ $latest->ndvi_value !== null ? number_format($latest->ndvi_value, 2) : '—' }}</div>
                         <span class="badge bg-fs-soft text-success">NDVI {{ $latest->date->format('Y-m-d') }}</span>
                     </div>
                 </div>
@@ -130,7 +168,7 @@
                 <div class="card fs-card h-100">
                     <div class="card-body">
                         <small class="text-uppercase text-muted">Temp <span class="material-symbols-outlined fs-6">thermostat</span></small>
-                        <div class="fs-kpi">{{ $latest->temp !== null ? number_format($latest->temp, 1) : '—' }}<small class="fs-6 fw-normal">°C</small></div>
+                        <div class="fs-kpi" id="kpi-temp">{{ $latest->temp !== null ? number_format($latest->temp, 1) : '—' }}<small class="fs-6 fw-normal">°C</small></div>
                     </div>
                 </div>
             </div>
@@ -138,7 +176,7 @@
                 <div class="card fs-card h-100">
                     <div class="card-body">
                         <small class="text-uppercase text-muted">Humedad <span class="material-symbols-outlined fs-6 text-primary">water_drop</span></small>
-                        <div class="fs-kpi">{{ $latest->humidity !== null ? number_format($latest->humidity, 0) : '—' }}<small class="fs-6 fw-normal">%</small></div>
+                        <div class="fs-kpi" id="kpi-hum">{{ $latest->humidity !== null ? number_format($latest->humidity, 0) : '—' }}<small class="fs-6 fw-normal">%</small></div>
                     </div>
                 </div>
             </div>
@@ -146,7 +184,7 @@
                 <div class="card fs-card h-100">
                     <div class="card-body">
                         <small class="text-uppercase text-muted">Lluvia <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
-                        <div class="fs-kpi">{{ $latest->precip !== null ? number_format($latest->precip, 1) : '—' }}<small class="fs-6 fw-normal">mm</small></div>
+                        <div class="fs-kpi" id="kpi-rain">{{ $latest->precip !== null ? number_format($latest->precip, 1) : '—' }}<small class="fs-6 fw-normal">mm</small></div>
                     </div>
                 </div>
             </div>
@@ -157,7 +195,7 @@
             <div class="col-6">
                 <div class="card fs-card h-100 bg-fs-sand">
                     <div class="card-body">
-                        <small class="text-uppercase text-muted">Lluvia acumulada (30 días) <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
+                        <small class="text-uppercase text-muted">Lluvia acumulada {{ $periodLabel }} <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
                         <div class="fs-kpi">{{ number_format($monthAccum, 1) }}<small class="fs-6 fw-normal">mm</small></div>
                         <span class="badge bg-primary">{{ $monthRainDays }} días con lluvia</span>
                     </div>
@@ -186,7 +224,7 @@
             <div class="col-12 col-lg-8">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <h2 class="h6">Lluvia diaria — últimos 30 días con dato (mm)</h2>
+                        <h2 class="h6">Lluvia diaria — {{ $periodTitle }} (mm)</h2>
                         <canvas id="precipChart" height="140"></canvas>
                     </div>
                 </div>
@@ -195,7 +233,7 @@
             <div class="col-12 col-lg-4">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <h2 class="h6">Lluvias y tormentas del mes (≥10 mm)</h2>
+                        <h2 class="h6">Lluvias y tormentas del mes {{ $periodLabel }} (≥10 mm)</h2>
                         <ul class="list-group list-group-flush">
                             @forelse ($rainEvents as $e)
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
@@ -244,7 +282,14 @@
             </div>
         </div>
     @else
-        <div class="alert alert-info">Sin registros en <code>nasa_agro_data</code>. Ejecuta <code>php artisan nasa:sync</code> para traer datos NASA POWER.</div>
+        @if ($hasRange)
+            <div class="alert alert-info">
+                Sin registros entre <code>{{ $desde ?? 'inicio' }}</code> y <code>{{ $hasta ?? 'hoy' }}</code>.
+                Ajusta el rango o pulsa <strong>Actualizar datos</strong>.
+            </div>
+        @else
+            <div class="alert alert-info">Sin registros en <code>nasa_agro_data</code>. Pulsa <strong>Actualizar datos</strong> para traer datos NASA POWER.</div>
+        @endif
     @endif
 
     {{-- Alertas reales --}}
@@ -260,7 +305,7 @@
         ];
     @endphp
     <div class="card fs-card mb-3" id="alertas">
-        <div class="card-header bg-transparent">Últimas alertas (Laravel + Ollama)</div>
+        <div class="card-header bg-transparent">Últimas alertas (Laravel + IA)</div>
         <ul class="list-group list-group-flush">
             @forelse ($alerts as $alert)
                 <li class="list-group-item">
@@ -280,7 +325,7 @@
     <div class="d-flex justify-content-around align-items-center h-100">
         <a href="{{ route('dashboard') }}" class="text-center text-success text-decoration-none"><span class="material-symbols-outlined d-block">analytics</span>Tablero</a>
         <a href="{{ route('chat.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">chat</span>Chat</a>
-        <a href="{{ route('recommendations.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">psychology</span>IA</a>
+        <a href="{{ route('rotations.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">crop_rotation</span>Rotaciones</a>
         <a href="{{ route('reforestation.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">forest</span>Reforestar</a>
         <a href="#alertas" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">cloud</span>Alertas</a>
     </div>
@@ -311,5 +356,51 @@
     });
 </script>
 @endif
-</body>
+<script>
+    (function () {
+        const form = document.getElementById('range-form');
+        if (!form) return;
+        const pad = (n) => String(n).padStart(2, '0');
+        const fmt = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        form.querySelectorAll('[data-days]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const value = btn.getAttribute('data-days');
+                if (value === 'clear') {
+                    form.desde.value = '';
+                    form.hasta.value = '';
+                } else {
+                    const end = new Date();
+                    const start = new Date(end);
+                    start.setDate(end.getDate() - (parseInt(value, 10) - 1));
+                    form.desde.value = fmt(start);
+                    form.hasta.value = fmt(end);
+                }
+                form.submit();
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
+        const fmt = (v, d = 2) => v === null || v === undefined ? '—' : Number(v).toFixed(d);
+        async function refresh() {
+            try {
+                const r = await fetch('{{ route('dashboard.latest') }}');
+                if (!r.ok) return;
+                const j = await r.json();
+                const els = document.querySelectorAll('[data-kpi]');
+                // update by id
+                const temp = document.querySelector('#kpi-temp');
+                if (temp && temp.firstChild) temp.firstChild.nodeValue = fmt(j.temp, 1);
+                const hum = document.querySelector('#kpi-hum');
+                if (hum && hum.firstChild) hum.firstChild.nodeValue = fmt(j.humidity, 0);
+                const rain = document.querySelector('#kpi-rain');
+                if (rain && rain.firstChild) rain.firstChild.nodeValue = fmt(j.precip, 1);
+                const ndvi = document.querySelector('#kpi-ndvi');
+                if (ndvi) ndvi.textContent = fmt(j.ndvi_value, 2);
+            } catch (e) {}
+        }
+        setInterval(refresh, 30000);
+    })();
+</script>
 </html>

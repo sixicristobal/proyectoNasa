@@ -1,0 +1,14 @@
+.git
+.gitignore
+node_modules
+vendor
+storage/logs
+storage/framework/sessions
+storage/framework/cache
+database/*.sqlite
+database/*.sqlite-journal
+.phpunit.result.cache
+*.zip
+INSTRUCCION.md
+daspc.html
+dasResponsive.html

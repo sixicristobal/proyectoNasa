@@ -60,7 +60,7 @@
     <div class="card fs-card mb-3">
         <div class="card-body p-2">
             <div id="map"></div>
-            <small class="text-muted d-block mt-2 px-2">{{ $attribution }}</small>
+            <small class="text-muted d-block mt-2 px-2">Endpoint: {{ $templates[$layer] }}</small>
         </div>
     </div>
 

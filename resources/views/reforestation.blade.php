@@ -9,15 +9,17 @@
 <body class="bg-light">
 <div class="container py-4" style="max-width: 720px">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 mb-0">Planificador de reforestación (Ollama local)</h1>
+        <h1 class="h4 mb-0">Planificador de reforestación (IA)</h1>
         <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
     </div>
 
-    @if ($errors->has('ollama'))
-        <div class="alert alert-warning">{{ $errors->first('ollama') }}</div>
+    @if ($errors->has('llm'))
+        <div class="alert alert-warning">{{ $errors->first('llm') }}</div>
     @endif
 
-    <form method="POST" action="{{ route('reforestation.store') }}" class="card card-body mb-3">
+    <div id="reforestation-error" class="alert alert-warning d-none"></div>
+
+    <form method="POST" action="{{ route('reforestation.store') }}" id="reforestation-form" class="card card-body mb-3">
         @csrf
         <label class="form-label">Tipo de suelo</label>
         <input type="text" name="suelo" class="form-control mb-2" required placeholder="Ej: rojo, arenoso, arcilloso">
@@ -30,9 +32,10 @@
         </div>
     </form>
 
-    @if ($result)
-        <div class="card mb-3"><div class="card-body" style="white-space: pre-line">{{ $result }}</div></div>
-    @endif
+    <div id="reforestation-result" class="card mb-3 {{ $result ? '' : 'd-none' }}">
+        <div class="card-header bg-transparent">Plan generado por la IA local</div>
+        <div class="card-body" style="white-space: pre-line">{{ $result }}</div>
+    </div>
 
     <div class="card">
         <div class="card-header">Especies nativas disponibles</div>
@@ -43,5 +46,35 @@
         </ul>
     </div>
 </div>
+
+@include('partials.ai-preloader', [
+    'aiMessages' => [
+        'Conectando con la IA…',
+        'Leyendo el tipo de suelo que declaraste…',
+        'Cruzando el clima NASA de tu latitud y longitud…',
+        'La IA selecciona especies nativas del catálogo…',
+        'Redactando época de plantación y cuidados…',
+    ],
+])
+
+<script>
+    aiAsk({
+        form: document.getElementById('reforestation-form'),
+        url: @json(route('reforestation.store')),
+        onSuccess: function (data) {
+            var card = document.getElementById('reforestation-result');
+            card.querySelector('.card-body').textContent = data.result;
+            card.classList.remove('d-none');
+            var error = document.getElementById('reforestation-error');
+            error.classList.add('d-none');
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        onError: function (message) {
+            var error = document.getElementById('reforestation-error');
+            error.textContent = message;
+            error.classList.remove('d-none');
+        }
+    });
+</script>
 </body>
 </html>

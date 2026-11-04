@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\NasaAgroData;
-use App\Services\OllamaService;
+use App\Services\LlmService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -27,7 +27,7 @@ class ReforestationController extends Controller
         ]);
     }
 
-    public function store(Request $request, OllamaService $ollama)
+    public function store(Request $request, LlmService $llm)
     {
         $validated = $request->validate([
             'suelo' => ['required', 'string', 'max:50'],
@@ -55,9 +55,17 @@ class ReforestationController extends Controller
         ]];
 
         try {
-            $result = $ollama->chat($messages);
+            $result = $llm->chat($messages);
         } catch (\RuntimeException $e) {
-            return redirect()->route('reforestation.index')->withErrors(['ollama' => $e->getMessage()]);
+            if ($request->expectsJson()) {
+                return response()->json(['error' => $e->getMessage()], 502);
+            }
+
+            return redirect()->route('reforestation.index')->withErrors(['llm' => $e->getMessage()]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['result' => $result]);
         }
 
         return redirect()->route('reforestation.index')->with('reforestation', $result);
@@ -65,7 +73,7 @@ class ReforestationController extends Controller
 
     protected function buildClimate(?float $lat, ?float $lon): string
     {
-        $query = NasaAgroData::query()->orderByDesc('date')->limit(7);
+        $query = NasaAgroData::query()->orderByDesc('date')->limit(5);
 
         if ($lat !== null && $lon !== null) {
             $query->near($lat, $lon);

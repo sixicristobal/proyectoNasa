@@ -56,6 +56,51 @@ class ManualRefreshTest extends TestCase
         $this->assertSame(0, NasaAgroData::count());
     }
 
+    public function test_actualizar_acepta_rango_de_dias(): void
+    {
+        $this->fakeNasaPower();
+
+        $this->post('/actualizar', ['days' => 30])->assertSessionHas('refresh_status');
+
+        Http::assertSent(fn ($request) => $request['end'] === now()->format('Ymd')
+            && $request['start'] === now()->subDays(29)->format('Ymd'));
+    }
+
+    public function test_actualizar_desde_hasta_tienen_prioridad_sobre_days(): void
+    {
+        $this->fakeNasaPower();
+
+        $this->post('/actualizar', [
+            'days' => 10,
+            'desde' => '2026-09-01',
+            'hasta' => '2026-09-30',
+        ])->assertSessionHas('refresh_status');
+
+        Http::assertSent(fn ($request) => $request['start'] === '20260901' && $request['end'] === '20260930');
+    }
+
+    public function test_actualizar_rechaza_rango_invertido(): void
+    {
+        $this->fakeNasaPower();
+
+        $this->post('/actualizar', ['desde' => '2026-10-10', 'hasta' => '2026-10-01'])
+            ->assertSessionHasErrors('desde');
+
+        Http::assertNothingSent();
+        $this->assertSame(0, NasaAgroData::count());
+    }
+
+    public function test_actualizar_rechaza_days_fuera_de_rango(): void
+    {
+        $this->fakeNasaPower();
+
+        $this->post('/actualizar', ['days' => 0])->assertSessionHasErrors('days');
+        $this->post('/actualizar', ['desde' => '2020-01-01', 'hasta' => now()->format('Y-m-d')])
+            ->assertSessionHasErrors('desde');
+
+        Http::assertNothingSent();
+    }
+
     public function test_dashboard_muestra_boton_actualizar(): void
     {
         $this->get('/')->assertStatus(200)->assertSee('Actualizar datos');

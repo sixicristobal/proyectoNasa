@@ -10,28 +10,30 @@ class OllamaService
 {
     /**
      * @param  array<int, array{role: string, content: string}>  $messages
-     * @param  int  $timeout  segundos (180 web, 300+ en jobs en 2do plano)
+     * @param  int|null  $timeout  segundos; por defecto `services.ollama.timeout` (600 en el servidor CPU)
+     * @param  array<string, mixed>  $options  se fusiona sobre `temperature`/`num_ctx`/`num_predict`
      */
-    public function chat(array $messages, int $timeout = 180): string
+    public function chat(array $messages, ?int $timeout = null, array $options = []): string
     {
-        $model = (string) config('services.ollama.model', 'llama3.2:3b');
+        $model = (string) config('services.ollama.model', 'llama3.2:1b');
         $host = rtrim((string) config('services.ollama.host', 'http://100.107.189.14:11434'), '/');
+        $timeout ??= (int) config('services.ollama.timeout', 600);
 
         try {
-            $response = Http::timeout($timeout)->post(
+            $response = Http::connectTimeout(10)->timeout($timeout)->post(
                 $host.'/api/chat',
                 [
                     'model' => $model,
                     'messages' => $messages,
                     'stream' => false,
                     // keep_alive evita la carga en frío (~2GB) en cada request:
-                    // el servidor casero es CPU y cargar tarda + inferencia ~7 tok/s.
+                    // el servidor casero es CPU y cargar tarda + inferencia.
                     'keep_alive' => '24h',
-                    'options' => [
+                    'options' => array_merge([
                         'temperature' => 0.2,
                         'num_ctx' => 4096,
-                        'num_predict' => 400,
-                    ],
+                        'num_predict' => (int) config('services.ollama.num_predict', 200),
+                    ], $options),
                 ]
             );
 
@@ -40,7 +42,7 @@ class OllamaService
             throw new \RuntimeException($this->friendlyError($e, $model), previous: $e);
         } catch (ConnectionException $e) {
             throw new \RuntimeException(
-                'Ollama (Docker por Tailscale) tardó demasiado o no responde en '.config('services.ollama.host').'. '
+                'Ollama (Docker por Tailscale) tardó más de '.$timeout.' s o no responde en '.config('services.ollama.host').'. '
                 .'Verifica en tu servidor casero: `docker ps | grep ollama`, que Tailscale esté conectado (`tailscale status`) y que el modelo esté descargado (`docker exec ollama ollama pull '.config('services.ollama.model').'`).',
                 previous: $e
             );

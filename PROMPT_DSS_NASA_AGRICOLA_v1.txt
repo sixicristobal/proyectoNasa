@@ -1,0 +1,492 @@
+markdown
+# PROMPT TÉCNICO PARA DEEPSEEK
+## Proyecto: DSS Agrícola basado en NASA Earth Observations (Laravel + MariaDB + IA)
+
+> **INSTRUCCIONES AL ASISTENTE (DeepSeek):**
+> Este es un único documento autocontenido. Al recibirlo, debes:
+> 1. **Auditar** el código existente del proyecto y marcar qué ítems ya están implementados y cuáles faltan.
+> 2. **Generar** las migraciones, servicios, Jobs y componentes de UI que falten, en el orden de prioridad indicado (Sección 11).
+> 3. **No asumir** nada no especificado aquí. Si algo no está claro, preguntar antes de generar código.
+> 4. Responder **en español**, con código completo y nombres de archivo/rutas explícitos.
+> 5. Empezar la respuesta con un **checklist de auditoría** (qué existe / qué falta).
+
+---
+
+## 1. Contexto del proyecto
+
+Herramienta de apoyo a la decisión agrícola que combina **observaciones de la Tierra de la NASA** con datos locales de suelo, características de cultivos y prioridades del agricultor, para recomendar **estrategias de rotación de cultivos** que fortalezcan la salud del suelo y la resiliencia climática.
+
+**Requisitos obligatorios del desafío:**
+- Comparar **al menos 3 estrategias de rotación** (incluida la actual).
+- Cada recomendación debe incluir: **por qué se sugirió**, **evidencia**, **beneficios**, **riesgos**, **lagunas de información**, **confianza**.
+- Explicar términos científicos (evapotranspiración, NDVI, anomalía de humedad, riesgo de heladas, balance hídrico).
+- Explicar diferencia entre observación satelital y medición terrestre.
+- La herramienta **complementa**, no reemplaza, el criterio del agricultor.
+
+---
+
+## 2. Stack actual
+
+| Componente | Tecnología | Estado |
+|---|---|---|
+| Backend | Laravel (PHP) | ✅ Existe |
+| Base de datos | MariaDB | ✅ Existe |
+| Frontend mapas | Leaflet.js | ✅ Existe |
+| IA / recomendador | Componente propio (a auditar) | ⚠️ Verificar |
+| HTTP client | Guzzle / Laravel `Http` | ✅ Existe |
+
+---
+
+## 3. APIs NASA actualmente consumidas (✅ YA IMPLEMENTADO)
+
+### 3.1. NASA POWER — Daily Point
+**Endpoint exacto:**
+https://power.larc.nasa.gov/api/temporal/daily/point
+?parameters=T2M,PRECTOTCORR,RH2M
+&community=AG
+&longitude=-57.48&latitude=-25.17
+&start=20260901&end=20260907
+&format=JSON
+
+text
+**Variables:** `T2M` (°C), `PRECTOTCORR` (mm/día), `RH2M` (%).
+**Uso:** contexto meteorológico por parcela.
+
+### 3.2. NASA CMR — Búsqueda de gránulos MODIS
+**Endpoint exacto:**
+https://cmr.earthdata.nasa.gov/search/granules.json
+?short_name=MOD13Q1
+&point=-57.48,-25.17
+&temporal=2026-08-01T00:00:00Z,2026-09-23T23:59:59Z
+&page_size=3
+
+text
+**Producto:** `MOD13Q1` = NDVI/EVI 16-día, 250 m.
+**Uso:** capa NDVI en Leaflet.
+
+---
+
+## 4. Autenticación NASA Earthdata (Requisito previo para nuevas APIs)
+
+- Registro: https://urs.earthdata.nasa.gov/users/new
+- Generar token Bearer:
+  ```bash
+  curl -X POST https://urs.earthdata.nasa.gov/api/users/tokens -u "USER:PASS"
+Guardar en .env y config/services.php:
+
+php
+'earthdata' => [
+    'username' => env('EARTHDATA_USER'),
+    'password' => env('EARTHDATA_PASS'),
+    'token'    => env('EARTHDATA_TOKEN'),
+],
+Cliente para descargas (CMR redirige a DAAC que exige credenciales):
+
+php
+Http::withToken(config('services.earthdata.token'))
+    ->withOptions(['allow_redirects' => ['max' => 10, 'track_redirects' => true]])
+    ->get($granuleUrl);
+5. Nuevas APIs NASA a integrar (❌ PENDIENTES)
+Todas usan el mismo endpoint CMR que ya se consume para MODIS. Solo cambia short_name. La descarga del gránulo requiere token Earthdata.
+
+5.1. 🟢 SMAP — Humedad del suelo (PRIORIDAD ALTA)
+¿Por qué? Indicador directo de estrés hídrico del suelo. Decide si un cultivo sediento es viable.
+
+Colecciones CMR (short_name):
+
+short_name	Producto	Resolución	Frecuencia
+SPL3SMP	L3 Radiometer Daily 36 km	36 km	Diario
+SPL3SMP_E	L3 Enhanced 9 km	9 km	Diario
+SPL4SMGP	L4 3-hourly 9 km	9 km	Cada 3 h
+Request de ejemplo (idéntico al de MODIS, cambiando short_name):
+
+text
+https://cmr.earthdata.nasa.gov/search/granules.json
+  ?short_name=SPL3SMP_E
+  &point=-57.48,-25.17
+  &temporal=2026-08-01T00:00:00Z,2026-09-23T23:59:59Z
+  &page_size=10
+Alternativa simplificada — AppEEARS (recomendada si no se quiere manejar HDF5):
+
+text
+POST https://appeears.earthdatacloud.nasa.gov/api/task
+Authorization: Bearer <EARTHDATA_TOKEN>
+Content-Type: application/json
+
+{
+  "task_type": "point",
+  "task_name": "smap_parcela_001",
+  "params": {
+    "dates": [{ "startDate": "08-01-2026", "endDate": "09-23-2026" }],
+    "layers": [{ "product": "SPL3SMP_E.006", "layer": "soil_moisture_am" }],
+    "coordinates": [{ "id": "parcela_001", "latitude": -25.17, "longitude": -57.48 }],
+    "output": { "format": { "type": "geotiff" }, "projection": "geographic" }
+  }
+}
+5.2. 🟢 ECOSTRESS — Evapotranspiración y estrés de la vegetación (PRIORIDAD ALTA)
+¿Por qué? Distingue entre vegetación "verde" (NDVI) y vegetación estresada por falta de agua. Mide ET real.
+
+Colecciones CMR:
+
+short_name	Variable
+ECO3ETPTJPL	ET (PT-JPL)
+ECO3ETALEXI	ET (ALEXI)
+ECO3ESI	Evaporative Stress Index
+ECO3WUE	Water Use Efficiency
+Request CMR:
+
+text
+https://cmr.earthdata.nasa.gov/search/granules.json
+  ?short_name=ECO3ETPTJPL
+  &point=-57.48,-25.17
+  &temporal=2026-08-01T00:00:00Z,2026-09-23T23:59:59Z
+  &page_size=10
+Recomendado: usar AppEEARS con layer EVAPOTRANSPIRATION_PT_JPL_ETinst.
+
+5.3. 🟢 GPM IMERG — Precipitación de alta resolución (PRIORIDAD ALTA)
+¿Por qué? POWER da precipitación diaria; IMERG da 30 min y mejor detección de eventos extremos (erosión, escorrentía).
+
+Colecciones CMR:
+
+short_name	Frecuencia
+GPM_3IMERGHH	30 min
+GPM_3IMERGDF	Diario
+GPM_3IMERGDL	Diario (baja latencia)
+Request CMR:
+
+text
+https://cmr.earthdata.nasa.gov/search/granules.json
+  ?short_name=GPM_3IMERGDF
+  &point=-57.48,-25.17
+  &temporal=2026-08-01T00:00:00Z,2026-09-23T23:59:59Z
+  &page_size=5
+Métricas derivables: intensidad máx. diaria, días con lluvia >50 mm (riesgo erosión), racha seca (días consecutivos <1 mm).
+
+5.4. 🟡 SRTM — Elevación y pendiente (PRIORIDAD MEDIA)
+¿Por qué? Pendiente condiciona erosión, escorrentía y microclima. Necesario para RUSLE simplificado.
+
+Colecciones CMR: SRTMGL1 (30 m), SRTMGL3 (90 m).
+
+Alternativa sin autenticación — OpenTopography API:
+
+text
+https://portal.opentopography.org/API/globaldem
+  ?demtype=SRTMGL1
+  &south=-25.20&north=-25.14&west=-57.51&east=-57.45
+  &outputFormat=GTiff&API_Key=<KEY>
+5.5. 🟡 MODIS extendido — LST y ET (PRIORIDAD MEDIA)
+Ampliar el ModisService existente con:
+
+short_name	Variable	Uso agrícola
+MOD11A2	LST 8-día	Riesgo de heladas (LST_min < 3 °C)
+MOD16A2	ET 8-día	Balance hídrico
+VNP13A1	VIIRS NDVI 500 m	Mayor resolución que MOD13Q1
+Request LST (heladas):
+
+text
+https://cmr.earthdata.nasa.gov/search/granules.json
+  ?short_name=MOD11A2
+  &point=-57.48,-25.17
+  &temporal=2026-06-01T00:00:00Z,2026-09-30T23:59:59Z
+  &page_size=10
+5.6. 🟡 Landsat 8/9 — NDVI 30 m (PRIORIDAD MEDIA)
+Para parcelas pequeñas donde MODIS (250 m) es insuficiente.
+
+text
+https://cmr.earthdata.nasa.gov/search/granules.json
+  ?short_name=LANDSAT_OT_L2
+  &point=-57.48,-25.17
+  &temporal=2026-08-01T00:00:00Z,2026-09-23T23:59:59Z
+NDVI = (NIR − Red) / (NIR + Red), bandas 5 y 4.
+
+5.7. 🔵 GRACE-FO y GEDI (OPCIONAL, no bloqueante)
+GRACE-FO → tendencia multianual de agua subterránea (solo gráficos de tendencia).
+
+GEDI → biomasa / materia orgánica (rotaciones con cobertura vegetal).
+
+6. Resumen de APIs
+#	API	Variable	Estado	Prioridad	Auth
+1	NASA POWER	T2M, PRECTOTCORR, RH2M	✅	—	No
+2	CMR → MOD13Q1	NDVI	✅	—	Solo descarga
+3	SMAP	Humedad suelo	❌	🟢 Alta	Sí
+4	ECOSTRESS	ET / estrés	❌	🟢 Alta	Sí
+5	GPM IMERG	Precip. 30 min	❌	🟢 Alta	Sí
+6	SRTM	Elevación	❌	🟡 Media	Sí / OpenTopo
+7	MOD11A2	LST / heladas	❌	🟡 Media	Sí
+8	MOD16A2	ET 8-día	❌	🟡 Media	Sí
+9	Landsat 8/9	NDVI 30 m	❌	🟡 Media	Sí
+10	GRACE-FO	Tendencia hídrica	⏸️	🔵 Baja	Sí
+11	GEDI	Biomasa	⏸️	🔵 Baja	Sí
+7. Esquema de Base de Datos (MariaDB) — migraciones a generar
+MariaDB no tiene PostGIS. Guardar geometría como JSON (WKT) o GEOMETRY.
+
+sql
+-- USUARIOS Y EXPLOTACIONES
+users (id, name, email, password, role ENUM('farmer','agronomist','admin'), timestamps)
+
+farms (id, user_id FK, name, region, country, timestamps)
+
+fields (
+  id, farm_id FK, name,
+  latitude DECIMAL(10,7), longitude DECIMAL(10,7),
+  area_ha DECIMAL(8,2), geometry JSON NULL,
+  soil_type VARCHAR(50), soil_ph DECIMAL(3,1),
+  soil_organic_matter_pct DECIMAL(4,2),
+  irrigation_type ENUM('secano','riego','mixto'),
+  timestamps
+)
+
+-- CATÁLOGO DE CULTIVOS
+crops (
+  id, name, scientific_name, family,
+  nitrogen_fixing BOOLEAN, deep_root BOOLEAN, drought_tolerant BOOLEAN,
+  water_demand ENUM('bajo','medio','alto'),
+  growing_days INT, planting_months JSON, harvest_months JSON,
+  market_value ENUM('bajo','medio','alto'),
+  forage_value ENUM('bajo','medio','alto'),
+  erosion_control ENUM('bajo','medio','alto'),
+  description TEXT
+)
+
+-- PRIORIDADES DEL AGRICULTOR
+farmer_priorities (
+  id, field_id FK,
+  water_conservation_weight TINYINT,
+  income_weight TINYINT,
+  soil_health_weight TINYINT,
+  erosion_weight TINYINT,
+  market_weight TINYINT,
+  notes TEXT
+)
+
+-- ROTACIONES
+rotations (
+  id, field_id FK, name, is_current BOOLEAN,
+  description TEXT,
+  strategy_type ENUM('actual','propuesta_ia','manual'),
+  timestamps
+)
+
+rotation_steps (
+  id, rotation_id FK, crop_id FK, sequence INT,
+  season ENUM('verano','invierno','todo_año'),
+  duration_days INT, notes TEXT
+)
+
+-- CACHÉ DE OBSERVACIONES NASA
+observations (
+  id, field_id FK,
+  source ENUM('POWER','MOD13Q1','SMAP','ECOSTRESS','GPM','SRTM','MODIS_LST','LANDSAT'),
+  variable VARCHAR(50), value DECIMAL(12,4), unit VARCHAR(20),
+  observed_at DATE, raw_response JSON, fetched_at TIMESTAMP
+)
+
+-- RECOMENDACIONES DE LA IA
+recommendations (
+  id, field_id FK, rotation_id FK NULL,
+  rank TINYINT,
+  why_suggested TEXT,
+  evidence TEXT,
+  benefits TEXT,
+  risks TEXT,
+  information_gaps TEXT,
+  confidence DECIMAL(3,2),
+  requires_local_validation BOOLEAN,
+  timestamps
+)
+
+-- ALERTAS
+alerts (
+  id, field_id FK,
+  type ENUM('helada','sequia','exceso_lluvia','estres_hidrico','erosion'),
+  severity ENUM('baja','media','alta'),
+  message TEXT,
+  triggered_by_observation_id FK NULL,
+  valid_from DATE, valid_until DATE,
+  acknowledged_at TIMESTAMP NULL
+)
+
+-- FEEDBACK
+feedback (
+  id, recommendation_id FK, user_id FK,
+  useful BOOLEAN, comment TEXT, local_validation TEXT, timestamps
+)
+
+-- ÍNDICES
+CREATE INDEX idx_obs_field_date ON observations(field_id, observed_at);
+CREATE INDEX idx_obs_variable ON observations(variable);
+CREATE INDEX idx_alerts_active ON alerts(field_id, valid_until);
+8. Servicios Laravel a implementar
+Estructura app/Services/Nasa/
+text
+PowerService.php        ✅ existe
+CmrService.php          ✅ existe (búsqueda de gránulos)
+SmapService.php         ❌ PENDIENTE
+EcostressService.php    ❌ PENDIENTE
+GpmImergService.php     ❌ PENDIENTE
+SrtmService.php         ❌ PENDIENTE
+ModisService.php        ⚠️ AMPLIAR (MOD11A2, MOD16A2)
+LandsatService.php      ⏸️ OPCIONAL
+AppEarsService.php      ❌ PENDIENTE
+Cliente CMR unificado (base para todos los servicios nuevos)
+php
+// app/Services/Nasa/CmrService.php
+public function searchGranules(
+    string $shortName, float $lat, float $lon,
+    Carbon $start, Carbon $end, int $pageSize = 10
+): array {
+    $response = Http::get('https://cmr.earthdata.nasa.gov/search/granules.json', [
+        'short_name' => $shortName,
+        'point'      => "{$lon},{$lat}",
+        'temporal'   => "{$start->toIso8601ZuluString()},{$end->toIso8601ZuluString()}",
+        'page_size'  => $pageSize,
+    ]);
+    return $response->json('feed.entry', []);
+}
+Jobs (app/Jobs/)
+php
+FetchNasaObservationsJob    // orquesta todas las APIs para un field_id
+FetchSmapJob
+FetchEcostressJob
+FetchGpmJob
+FetchSrtmJob
+FetchModisLstJob
+GenerateRecommendationsJob  // invoca el RotationEngine
+GenerateAlertsJob           // evalúa umbrales y crea alertas
+Scheduler (routes/console.php):
+
+php
+Schedule::job(new FetchNasaObservationsJob)->dailyAt('03:00');
+Schedule::job(new GenerateAlertsJob)->dailyAt('04:00');
+Schedule::job(new GenerateRecommendationsJob)->weekly();
+Caché y rate limit
+php
+// Caché 24 h por observación
+Cache::remember("obs:{$fieldId}:{$variable}:{$date}", 86400, fn() => /* fetch */);
+
+// Rate limit
+RateLimiter::for('nasa', fn() => Limit::perSecond(10));
+9. Motor de IA / Recomendador — auditoría requerida
+9.1. Debe producir
+≥3 estrategias (actual + 2 alternativas).
+
+Cada una con: why_suggested, evidence, benefits, risks, information_gaps, confidence en [0,1], requires_local_validation (bool).
+
+9.2. Entrada
+observations (NASA), farmer_priorities, crops, historial de rotaciones.
+
+9.3. Enfoque recomendado
+Sistema experto basado en reglas (obligatorio como fallback).
+
+Ejemplo: "si humedad_media_90d < percentil 15 histórico y cultivo_actual.water_demand='alto' → sugerir cultivo con drought_tolerant=true y water_demand='bajo'".
+
+Score multiobjetivo ponderando prioridades del agricultor.
+
+ML (opcional): RandomForest/XGBoost + SHAP para explicabilidad.
+
+9.4. Explicabilidad obligatoria
+Cada recomendación debe citar evidencia numérica, p. ej.:
+
+"SMAP muestra humedad promedio de 0.12 m³/m³ en los últimos 90 días (percentil 15 histórico) → alto estrés hídrico."
+
+9.5. Feedback loop
+Persistir en tabla feedback y usar para re-rankear (si "no útil" ≥3 veces en misma región → bajar peso).
+
+10. Frontend / UI (Leaflet + Laravel Blade/Livewire)
+10.1. Dashboard agricultor
+□ Selector de parcela con leaflet-draw (dibujar polígonos).
+□ Panel de prioridades (sliders: agua, ingresos, suelo, erosión, mercado).
+□ Gráficos de observaciones: T2M, PRECTOTCORR, RH2M, NDVI, humedad SMAP, ET ECOSTRESS.
+□ Comparador de 3 rotaciones en columnas con beneficios/riesgos/lagunas.
+□ Bandeja de alertas (helada, sequía, exceso de lluvia).
+□ Glosario con tooltips: "evapotranspiración", "NDVI", "anomalía de humedad".
+□ Vista mobile-first.
+10.2. Capas Leaflet a añadir
+□ NDVI (MOD13Q1 / Landsat).
+□ Humedad suelo (SMAP).
+□ LST para heladas (MOD11A2).
+□ Precipitación acumulada (GPM IMERG).
+□ Pendiente/elevación (SRTM).
+□ Slider temporal para comparar años.
+11. Plan de implementación priorizado
+Fase 1 — Robustecer datos (1-2 semanas)
+
+Configurar NASA Earthdata (EARTHDATA_TOKEN en .env).
+
+Implementar SmapService + FetchSmapJob (vía AppEEARS recomendado).
+
+Implementar GpmImergService (vía CMR).
+
+Persistir en observations con caché 24 h.
+
+Añadir capas SMAP y GPM a Leaflet.
+
+Fase 2 — Motor de recomendación (2 semanas)
+
+Implementar RotationEngine con reglas + score multiobjetivo.
+
+Generar ≥3 recomendaciones por parcela con TODOS los campos requeridos.
+
+Vista "Comparador de rotaciones".
+
+Fase 3 — Alertas y UX (1-2 semanas)
+
+GenerateAlertsJob con umbrales (helada: LST_min < 3 °C; sequía: SMAP < percentil 10).
+
+Panel de alertas + glosario.
+
+leaflet-draw para parcelas.
+
+Fase 4 — IA avanzada (opcional)
+
+Modelo ML de riesgo (erosión, estrés hídrico) + SHAP.
+
+Feedback loop con tabla feedback.
+
+12. Checklist de requisitos obligatorios del desafío
+#	Requisito	Estado esperado
+1	NASA POWER (meteorología)	✅ Hecho
+2	CMR / MODIS (NDVI)	✅ Hecho
+3	SMAP (humedad suelo)	❌ Pendiente
+4	ECOSTRESS (ET)	❌ Pendiente
+5	GPM IMERG (precip. 30 min)	❌ Pendiente
+6	SRTM (topografía)	❌ Pendiente
+7	Mapa Leaflet interactivo	✅ Hecho (ampliar)
+8	Comparar ≥3 rotaciones	⚠️ Verificar
+9	Evidencia/beneficios/riesgos/lagunas por rotación	❌ Pendiente
+10	Prioridades del agricultor configurables	⚠️ Verificar
+11	Glosario de términos científicos	❌ Pendiente
+12	Explicar satélite vs. medición terrestre	❌ Pendiente
+13	Alertas de eventos extremos	❌ Pendiente
+14	Feedback del agricultor	❌ Pendiente
+15	Cuantificar incertidumbre (confianza)	⚠️ Verificar
+16	Mobile-first / lenguaje llano	⚠️ Verificar
+13. Buenas prácticas de seguridad
+Token Earthdata solo en backend (nunca en frontend).
+
+.env: EARTHDATA_USER, EARTHDATA_PASS, EARTHDATA_TOKEN.
+
+Llamadas lentas (HDF5) → Queue.
+
+Caché agresivo 24 h (datos diarios no cambian intradía).
+
+Log de cada request a NASA.
+
+Validar coordenadas (rango −90/90, −180/180) y fechas coherentes.
+
+14. Formato de respuesta esperado de DeepSeek
+Al recibir este documento, responde en este orden:
+
+CHECKLIST DE AUDITORÍA — lista de ítems de las Secciones 6, 8, 9, 10 y 12 marcados como ✅ / ❌ / ⚠️ según el código actual.
+
+MIGRACIONES FALTANTES — código completo para las tablas de la Sección 7 que no existan.
+
+SERVICIOS FALTANTES — empezar por SmapService y GpmImergService, con código completo y Http de Laravel.
+
+JOBS Y SCHEDULER — código de los Jobs de Sección 8 y su registro en routes/console.php.
+
+ROTATION ENGINE — código completo de la clase RotationEngine con ≥3 estrategias y todos los campos obligatorios.
+
+CAPAS LEAFLET FALTANTES — código JS para añadir SMAP, LST, GPM y SRTM al mapa.
+
+PRÓXIMOS PASOS PRIORIZADOS — lista ordenada de las 5 tareas más urgentes.

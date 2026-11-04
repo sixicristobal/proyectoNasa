@@ -13,24 +13,26 @@
         <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
     </div>
 
-    @if ($errors->has('ollama'))
-        <div class="alert alert-warning">{{ $errors->first('ollama') }}</div>
+    @if ($errors->has('llm'))
+        <div class="alert alert-warning">{{ $errors->first('llm') }}</div>
     @endif
 
+    <div id="chat-error" class="alert alert-warning d-none"></div>
+
     <div class="card mb-3">
-        <div class="card-body">
+        <div class="card-body" id="chat-history">
             @forelse ($history as $msg)
                 <div class="mb-2 p-2 rounded {{ $msg['role'] === 'user' ? 'bg-primary text-white' : 'bg-white border' }}">
                     <small class="d-block opacity-75">{{ $msg['role'] }}</small>
                     {{ $msg['content'] }}
                 </div>
             @empty
-                <p class="text-muted mb-0">Pregunta sobre siembra, riego, sequía o heladas.</p>
+                <p class="text-muted mb-0" id="chat-empty">Pregunta sobre siembra, riego, sequía o heladas.</p>
             @endforelse
         </div>
     </div>
 
-    <form method="POST" action="{{ route('chat.store') }}" class="card card-body">
+    <form method="POST" action="{{ route('chat.store') }}" id="chat-form" class="card card-body">
         @csrf
         <textarea name="message" class="form-control mb-2" rows="3" required placeholder="¿Riesgo de helada esta semana?"></textarea>
         <div class="row g-2">
@@ -40,5 +42,56 @@
         </div>
     </form>
 </div>
+
+@include('partials.ai-preloader', [
+    'aiMessages' => [
+        'Conectando con la IA…',
+        'Leyendo datos climáticos y NDVI de la NASA…',
+        'La IA recuerda el contexto de la conversación…',
+        'Redactando la respuesta…',
+    ],
+])
+
+<script>
+    aiAsk({
+        form: document.getElementById('chat-form'),
+        url: @json(route('chat.store')),
+        onSuccess: function (data) {
+            var history = document.getElementById('chat-history');
+            var empty = document.getElementById('chat-empty');
+            if (empty) {
+                empty.remove();
+            }
+            var question = document.getElementById('chat-form').querySelector('[name="message"]').value;
+
+            var user = document.createElement('div');
+            user.className = 'mb-2 p-2 rounded bg-primary text-white';
+            var userRole = document.createElement('small');
+            userRole.className = 'd-block opacity-75';
+            userRole.textContent = 'user';
+            user.appendChild(userRole);
+            user.appendChild(document.createTextNode(question));
+            history.appendChild(user);
+
+            var assistant = document.createElement('div');
+            assistant.className = 'mb-2 p-2 rounded bg-white border';
+            var assistantRole = document.createElement('small');
+            assistantRole.className = 'd-block opacity-75';
+            assistantRole.textContent = 'assistant';
+            assistant.appendChild(assistantRole);
+            assistant.appendChild(document.createTextNode(data.reply));
+            history.appendChild(assistant);
+
+            document.getElementById('chat-form').reset();
+            document.getElementById('chat-error').classList.add('d-none');
+            history.scrollTop = history.scrollHeight;
+        },
+        onError: function (message) {
+            var error = document.getElementById('chat-error');
+            error.textContent = message;
+            error.classList.remove('d-none');
+        }
+    });
+</script>
 </body>
 </html>

@@ -34,6 +34,16 @@ class NasaImageryService
                 'desc' => 'Segunda pasada diaria, útil si Terra viene con nubes.',
                 'gibs' => 'VIIRS_SNPP_CorrectedReflectance_TrueColor',
             ],
+            'smap_soil_moisture' => [
+                'label' => 'Humedad del suelo (SMAP L3)',
+                'desc' => 'Humedad superficial diaria de SMAP (contexto regional, complementa la observación puntual por parcela).',
+                'gibs' => 'SMAP_L3_Active_Passive_Soil_Moisture',
+            ],
+            'imerg_precipitation' => [
+                'label' => 'Precipitación (GPM IMERG)',
+                'desc' => 'Tasa de precipitación IMERG. Útil para ver eventos extremos y acumulados regionales.',
+                'gibs' => 'IMERG_Precipitation_Rate',
+            ],
         ];
     }
 

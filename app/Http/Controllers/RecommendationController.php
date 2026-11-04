@@ -30,7 +30,15 @@ class RecommendationController extends Controller
         try {
             $result = $llm->recommend($validated['topic'], $context);
         } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => $e->getMessage()], 502);
+            }
+
             return redirect()->route('recommendations.index')->withErrors(['llm' => $e->getMessage()]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['result' => $result]);
         }
 
         return redirect()->route('recommendations.index')->with('recommendation', $result);
@@ -38,7 +46,7 @@ class RecommendationController extends Controller
 
     protected function buildContext(?float $lat, ?float $lon): string
     {
-        $query = NasaAgroData::query()->orderByDesc('date')->limit(7);
+        $query = NasaAgroData::query()->orderByDesc('date')->limit(5);
 
         if ($lat !== null && $lon !== null) {
             $query->near($lat, $lon);

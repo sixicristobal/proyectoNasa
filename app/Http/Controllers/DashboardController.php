@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Alert;
 use App\Models\NasaAgroData;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -14,7 +17,18 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'lat' => ['nullable', 'numeric', 'between:-90,90'],
             'lon' => ['nullable', 'numeric', 'between:-180,180'],
+            'desde' => ['nullable', 'date'],
+            'hasta' => ['nullable', 'date'],
         ]);
+
+        $desde = isset($validated['desde']) ? Carbon::parse($validated['desde'])->format('Y-m-d') : null;
+        $hasta = isset($validated['hasta']) ? Carbon::parse($validated['hasta'])->format('Y-m-d') : null;
+
+        if ($desde !== null && $hasta !== null && $desde > $hasta) {
+            throw ValidationException::withMessages([
+                'desde' => 'La fecha "desde" no puede ser posterior a "hasta".',
+            ]);
+        }
 
         $query = NasaAgroData::query()->orderBy('date');
 
@@ -22,13 +36,32 @@ class DashboardController extends Controller
             $query->near((float) $validated['lat'], (float) $validated['lon']);
         }
 
+        if ($desde !== null) {
+            $query->where('date', '>=', $desde);
+        }
+
+        if ($hasta !== null) {
+            $query->where('date', '<=', $hasta);
+        }
+
+        $hasRange = $desde !== null || $hasta !== null;
         $records = $query->limit(365)->get();
         $latest = $records->last();
         $recent = $records->slice(-5)->reverse()->values();
 
-        // ── Último mes con dato real (excluye días NULL del lag NRT) ──
-        $month = $records->filter(fn ($r) => $r->precip !== null)->slice(-30)->values();
+        // ── Período de los KPIs de lluvia: el rango elegido, o por defecto los
+        //    últimos 30 días con dato (excluye días NULL del lag NRT) ──
+        $month = $records->filter(fn ($r) => $r->precip !== null);
+        $month = ($hasRange ? $month : $month->slice(-30))->values();
         $rainEvents = $month->filter(fn ($r) => (float) $r->precip >= 10)->sortByDesc('precip')->values();
+
+        $periodLabel = $hasRange
+            ? '('.($desde !== null ? Carbon::parse($desde)->format('m-d') : 'inicio')
+                .' → '.($hasta !== null ? Carbon::parse($hasta)->format('m-d') : 'hoy').')'
+            : '(30 días)';
+        $periodTitle = $hasRange
+            ? ($desde ?? 'inicio').' → '.($hasta ?? 'hoy')
+            : 'últimos 30 días con dato';
 
         return view('dashboard', [
             'labels' => $records->map(fn ($r) => $r->date->format('Y-m-d'))->all(),
@@ -42,10 +75,28 @@ class DashboardController extends Controller
             'rainEvents' => $rainEvents,
             'lat' => $validated['lat'] ?? null,
             'lon' => $validated['lon'] ?? null,
+            'desde' => $desde,
+            'hasta' => $hasta,
+            'hasRange' => $hasRange,
+            'periodLabel' => $periodLabel,
+            'periodTitle' => $periodTitle,
             'latest' => $latest,
             'recent' => $recent,
             'total' => $records->count(),
             'alerts' => Alert::query()->latest()->limit(8)->get(),
+        ]);
+    }
+
+    public function latest(Request $request): JsonResponse
+    {
+        $record = NasaAgroData::query()->orderBy('date', 'desc')->first();
+
+        return response()->json([
+            'date' => $record?->date?->format('Y-m-d'),
+            'ndvi_value' => $record?->ndvi_value,
+            'temp' => $record?->temp,
+            'humidity' => $record?->humidity,
+            'precip' => $record?->precip,
         ]);
     }
 }

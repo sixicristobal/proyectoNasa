@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\NasaAgroData;
-use App\Services\OllamaService;
+use App\Services\LlmService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -18,7 +18,7 @@ class ChatController extends Controller
         ]);
     }
 
-    public function store(Request $request, OllamaService $ollama)
+    public function store(Request $request, LlmService $llm)
     {
         $validated = $request->validate([
             'message' => ['required', 'string', 'max:2000'],
@@ -37,11 +37,11 @@ class ChatController extends Controller
 
         $messages = array_merge(
             [['role' => 'system', 'content' => $this->systemPrompt."\n\nDatos recientes:\n".$context]],
-            array_slice($history, -10)
+            array_slice($history, -6)
         );
 
         try {
-            $reply = $ollama->chat($messages);
+            $reply = $llm->chat($messages);
         } catch (\RuntimeException $e) {
             session(['chat_history' => array_slice($history, -20)]);
 
@@ -49,7 +49,7 @@ class ChatController extends Controller
                 return response()->json(['error' => $e->getMessage()], 502);
             }
 
-            return redirect()->route('chat.index')->withErrors(['ollama' => $e->getMessage()]);
+            return redirect()->route('chat.index')->withErrors(['llm' => $e->getMessage()]);
         }
 
         $history[] = ['role' => 'assistant', 'content' => $reply];
@@ -64,7 +64,7 @@ class ChatController extends Controller
 
     protected function buildAgroContext(?float $lat, ?float $lon): string
     {
-        $query = NasaAgroData::query()->orderByDesc('date')->limit(7);
+        $query = NasaAgroData::query()->orderByDesc('date')->limit(5);
 
         if ($lat !== null && $lon !== null) {
             $query->near($lat, $lon);

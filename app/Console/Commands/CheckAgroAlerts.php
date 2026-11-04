@@ -6,16 +6,18 @@ use App\Models\Alert;
 use App\Models\NasaAgroData;
 use App\Models\User;
 use App\Notifications\RiskAlertNotification;
-use App\Services\OllamaService;
+use App\Services\LlmService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 #[Signature('agro:check-alerts {--lat=} {--lon=} {--days=10}')]
-#[Description('Revisa últimos datos NASA y genera alertas locales (sequía/helada/lluvia/tormenta) con dictamen Ollama')]
+#[Description('Revisa últimos datos NASA y genera alertas locales (sequía/helada/lluvia/tormenta) con dictamen de IA')]
 class CheckAgroAlerts extends Command
 {
-    public function handle(OllamaService $ollama): int
+    public function handle(LlmService $llm): int
     {
         $lat = $this->option('lat') !== null ? (float) $this->option('lat') : null;
         $lon = $this->option('lon') !== null ? (float) $this->option('lon') : null;
@@ -69,26 +71,26 @@ class CheckAgroAlerts extends Command
                 continue;
             }
 
-            // ── Inferencia: dictamen con Ollama local (Docker por Tailscale) ──
-            // Timeout largo: corre en scheduler/2do plano y el servidor es CPU (~7 tok/s).
+            // ── Inferencia: dictamen con el driver de IA configurado (Gemini u Ollama) ──
+            // Timeout amplio: corre en scheduler/2do plano y Ollama puede inferir en CPU.
             try {
-                $message = $ollama->chat([[
+                $message = $llm->chat([[
                     'role' => 'user',
                     'content' => "Eres un experto agroclimático en Paraguay. Riesgo detectado: {$risk['risk_type']}. {$risk['detail']}\n\n"
                         ."Datos recientes:\n{$context}\n\nRedacta en español, en 3-4 líneas, qué debe hacer un pequeño productor esta semana.",
                 ]], timeout: 300);
             } catch (\Throwable $e) {
-                // Si Ollama está apagado o lento, guarda la alerta igual con el detalle
-                // técnico corto (el diagnóstico completo queda en el log, no en pantalla).
-                \Illuminate\Support\Facades\Log::warning('Ollama no disponible en agro:check-alerts: '.$e->getMessage());
-                $message = $risk['detail'].' (Dictamen IA pendiente: Ollama no respondió a tiempo, se reintentará en la próxima revisión.)';
+                // Si la IA está apagada, sin clave o lenta, guarda la alerta igual con el
+                // detalle técnico corto (el diagnóstico completo queda en el log).
+                Log::warning('IA no disponible en agro:check-alerts: '.$e->getMessage());
+                $message = $risk['detail'].' (Dictamen IA pendiente: el servicio de IA no respondió a tiempo, se reintentará en la próxima revisión.)';
             }
 
             $alert = Alert::create([
                 'risk_type' => $risk['risk_type'],
                 'message' => $message,
                 'data_date' => $risk['data_date'],
-                'source' => 'laravel-ollama',
+                'source' => 'laravel-'.$llm->driver(),
             ]);
 
             $user = User::query()->first();
@@ -105,7 +107,7 @@ class CheckAgroAlerts extends Command
     /**
      * Reglas de detección sobre los últimos días con dato.
      *
-     * @param  \Illuminate\Support\Collection<int, NasaAgroData>  $rows
+     * @param  Collection<int, NasaAgroData>  $rows
      * @return array<int, array{risk_type: string, detail: string, data_date: string}>
      */
     public function detectRisks($rows): array

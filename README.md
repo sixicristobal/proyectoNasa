@@ -68,7 +68,7 @@ Git (opcional, para clonar el repositorio)
 🚀 Instalación
 Clona el repositorio:
 
-git clone https://github.com/tu-usuario/ProyectoNASA.git
+git clone https://github.com/sixicristobal/proyectoNasa.git
 cd ProyectoNASA
 
 Instala las dependencias de PHP y JavaScript:

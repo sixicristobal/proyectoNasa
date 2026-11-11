@@ -1,59 +1,210 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+![Logo ProyectoNASA](https://assets.spaceappschallenge.org/media/images/logoterereJape.2e16d0ba.fill-300x250.png)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+ProyectoNASA 🌱🛰️
+Sistema web (Laravel + Bootstrap) para agricultura regenerativa basado en datos de la NASA: monitoreo de cultivos, campos, rotaciones, imágenes satelitales, recomendaciones y alertas.
 
-## About Laravel
+📋 Tabla de Contenidos
+Descripción
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Características
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Requisitos
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Instalación
 
-## Learning Laravel
+Configuración
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Desarrollo
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Estructura del Proyecto
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Rutas Principales
 
-## Agentic Development
+Funcionalidades
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Tecnologías Utilizadas
 
-```bash
-composer require laravel/boost --dev
+Contribución
 
-php artisan boost:install
-```
+Licencia
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+📖 Descripción
+ProyectoNASA es una plataforma web que integra datos satelitales y climatológicos proporcionados por la NASA para promover prácticas de agricultura regenerativa. La aplicación permite a agricultores y gestores de campos monitorear el estado de sus cultivos, planificar rotaciones, recibir recomendaciones inteligentes y visualizar imágenes satelitales actualizadas.
 
-## Contributing
+El objetivo principal es facilitar la toma de decisiones basadas en datos científicos, mejorando la sostenibilidad del suelo, la productividad y la resiliencia ante el cambio climático.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+✨ Características
+🛰️ Integración con datos de la NASA — Información satelital y meteorológica actualizada.
 
-## Code of Conduct
+🌾 Gestión de campos y cultivos — Registro y monitoreo centralizado.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+🔄 Planificación de rotaciones — Optimización de la salud del suelo.
 
-## Security Vulnerabilities
+🗺️ Visualización de imágenes satelitales — Análisis geoespacial de parcelas.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+🤖 Chat con IA — Asistente inteligente para consultas agrícolas.
 
-## License
+💡 Recomendaciones personalizadas — Basadas en datos y mejores prácticas regenerativas.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# proyectoNasa
+🔔 Alertas — Notificaciones sobre eventos climáticos o estados críticos.
+
+🌳 Módulo de reforestación — Seguimiento de iniciativas de recuperación vegetal.
+
+📊 Dashboard interactivo — Métricas clave y visualizaciones en tiempo real.
+
+⚙️ Requisitos
+Antes de comenzar, asegúrate de tener instalado:
+
+PHP 8.3+
+
+Composer (descargar)
+
+Node.js 18+ y npm (descargar)
+
+Base de datos: MySQL 8+, MariaDB
+
+Git (opcional, para clonar el repositorio)
+
+🚀 Instalación
+Clona el repositorio:
+
+git clone https://github.com/tu-usuario/ProyectoNASA.git
+cd ProyectoNASA
+
+Instala las dependencias de PHP y JavaScript:
+composer install
+npm install
+
+Configura el archivo de entorno:
+cp .env.example .env
+php artisan key:generate
+Ejecuta las migraciones:
+php artisan migrate
+
+Opcional: puedes poblar la base de datos con datos de prueba usando php artisan db:seed.
+
+Compila los assets del frontend:
+
+npm run build
+
+Configuración
+Edita el archivo .env según tu entorno:
+APP_NAME=ProyectoNASA
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mariadb
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=proyecto_nasa
+DB_USERNAME=root
+DB_PASSWORD=
+
+# API de la NASA
+NASA_API_KEY=tu_api_key_aqui
+Puedes obtener una API Key gratuita en api.nasa.gov.
+
+💻 Desarrollo
+Para iniciar el entorno de desarrollo local, ejecuta los siguientes comandos en dos terminales separadas:
+
+Terminal 1 — Servidor de assets (Vite):
+npm run dev
+
+Terminal 2 — Servidor de Laravel:
+
+php artisan serve
+
+Accede a la aplicación en: http://localhost:8000
+
+Comandos útiles
+
+# Ejecutar pruebas
+php artisan test
+
+# Formatear código PHP
+./vendor/bin/pint
+
+# Limpiar cachés
+php artisan optimize:clear
+
+# Re-ejecutar migraciones (⚠️ borra datos)
+php artisan migrate:fresh --seed
+📂 Estructura del Proyecto
+text
+ProyectoNASA/
+├── app/
+│   ├── Http/Controllers/     # Controladores de la aplicación
+│   ├── Models/               # Modelos Eloquent
+│   └── Services/             # Servicios (API NASA, IA, etc.)
+├── database/
+│   ├── migrations/           # Migraciones de la base de datos
+│   └── seeders/              # Datos iniciales
+├── resources/
+│   ├── css/                  # Estilos Tailwind
+│   ├── js/                   # Scripts (Vite)
+│   └── views/                # Plantillas Blade
+├── routes/
+│   └── web.php               # Rutas web
+├── public/                   # Archivos públicos
+├── .env.example              # Plantilla de variables de entorno
+├── composer.json             # Dependencias PHP
+└── package.json              # Dependencias JS
+
+🗺️ Rutas Principales
+Ruta	Descripción
+/	Dashboard con datos agrícolas actualizados
+/imagenes	Visualización de imágenes satelitales
+/datos-avanzados	Análisis avanzado de datos climáticos y agronómicos
+/chat	Chat interactivo con asistente de IA
+/recomendaciones	Recomendaciones personalizadas por campo
+/reforestacion	Seguimiento de proyectos de reforestación
+/rotaciones	Gestión y planificación de rotaciones de cultivos
+🚀 Funcionalidades Principales
+📊 Dashboard (/)
+Panel central con métricas actualizadas del estado de los cultivos, alertas activas y resumen general del sistema.
+
+🛰️ Imágenes Satelitales (/imagenes)
+Visualización de imágenes de la NASA vinculadas a coordenadas específicas de campos y parcelas.
+
+📈 Datos Avanzados (/datos-avanzados)
+Análisis profundo de variables climáticas, índices de vegetación (NDVI) y otros indicadores agronómicos.
+
+🤖 Chat IA (/chat)
+Asistente conversacional para resolver dudas sobre prácticas regenerativas y recibir orientación personalizada.
+
+💡 Recomendaciones (/recomendaciones)
+Sistema de sugerencias basado en datos satelitales y el estado actual del campo.
+
+🌳 Reforestación (/reforestacion)
+Módulo para planificar, registrar y monitorear acciones de reforestación.
+
+🔄 Rotaciones (/rotaciones)
+Herramienta para diseñar rotaciones de cultivos que mejoren la fertilidad del suelo y reduzcan plagas.
+
+🛠️ Tecnologías Utilizadas
+Backend
+Laravel — Framework PHP
+
+Composer — Gestor de dependencias PHP
+
+MySQL / Mariadb — Base de datos
+
+Frontend
+Bootstrap — Framework de estilos
+
+Vite — Bundler de assets
+
+Alpine.js (si aplica) — Interactividad ligera
+
+Integraciones
+NASA APIs — Datos satelitales y climáticos
+
+Servicios de IA para el chat y las recomendaciones
+
+🤝 Contribución
+¡Las contribuciones son bienvenidas! Si deseas colaborar:
+
+
+📄 Licencia
+Este proyecto está bajo la licencia MIT. Consulta el archivo LICENSE para más información.

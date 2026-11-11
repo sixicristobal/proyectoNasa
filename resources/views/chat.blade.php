@@ -35,9 +35,20 @@
     <form method="POST" action="{{ route('chat.store') }}" id="chat-form" class="card card-body">
         @csrf
         <textarea name="message" class="form-control mb-2" rows="3" required placeholder="¿Riesgo de helada esta semana?"></textarea>
+        <div class="mb-2">
+            <select id="city" class="form-select">
+                <option value="">— Ciudad (Paraguay) —</option>
+                <option value="-25.2637,-57.5759">Asunción</option>
+                <option value="-25.3394,-57.5463">San Lorenzo</option>
+                <option value="-25.3413,-57.5330">Luque</option>
+                <option value="-25.5098,-54.6111">Ciudad del Este</option>
+                <option value="-27.3333,-55.8667">Encarnación</option>
+                <option value="-23.4425,-57.4431">Concepción</option>
+            </select>
+        </div>
         <div class="row g-2">
-            <div class="col"><input type="number" step="any" name="lat" class="form-control" placeholder="Lat"></div>
-            <div class="col"><input type="number" step="any" name="lon" class="form-control" placeholder="Lon"></div>
+            <div class="col"><input type="number" step="any" name="lat" id="lat" class="form-control" placeholder="Lat"></div>
+            <div class="col"><input type="number" step="any" name="lon" id="lon" class="form-control" placeholder="Lon"></div>
             <div class="col-auto"><button class="btn btn-success">Enviar</button></div>
         </div>
     </form>
@@ -53,6 +64,12 @@
 ])
 
 <script>
+    document.getElementById('city')?.addEventListener('change', function () {
+        if (!this.value) return;
+        const [lat, lon] = this.value.split(',');
+        document.getElementById('lat').value = lat;
+        document.getElementById('lon').value = lon;
+    });
     aiAsk({
         form: document.getElementById('chat-form'),
         url: @json(route('chat.store')),

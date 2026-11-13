@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class LlmService
 {
     public function __construct(
@@ -29,9 +31,19 @@ class LlmService
     {
         $driver = (string) config('services.llm.driver', 'ollama');
 
-        return $driver === 'gemini'
-            ? $this->gemini->chat($messages, $timeout, $options)
-            : $this->ollama->chat($messages, $timeout, $options);
+        try {
+            return $driver === 'gemini'
+                ? $this->gemini->chat($messages, $timeout, $options)
+                : $this->ollama->chat($messages, $timeout, $options);
+        } catch (\Throwable $e) {
+            Log::error('LLM chat failed', [
+                'driver' => $driver,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            throw $e;
+        }
     }
 
     public function driver(): string

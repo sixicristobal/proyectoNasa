@@ -16,7 +16,7 @@ class GeminiService
     public function chat(array $messages, ?int $timeout = null, array $options = []): string
     {
         $key = (string) config('services.gemini.key');
-        $model = (string) config('services.gemini.model', 'gemini-3.8-flash');
+        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
         $timeout ??= (int) config('services.gemini.timeout', 120);
 
         if ($key === '') {
@@ -59,7 +59,7 @@ class GeminiService
 
         try {
             $response = Http::withHeaders(['x-goog-api-key' => $key])
-                ->connectTimeout(10)
+                ->connectTimeout(60)
                 ->timeout($timeout)
                 ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", $payload);
 
@@ -91,9 +91,9 @@ class GeminiService
 
         return match ($status) {
             400 => 'Gemini rechazó la solicitud (400). Verifica que GEMINI_API_KEY sea válida y que el modelo "'.$model.'" exista. Detalle: '.$body,
-            401, 403 => 'Gemini rechazó la autenticación (HTTP '.$status.'). Revisa GEMINI_API_KEY y los permisos del proyecto en Google AI Studio.',
-            404 => 'El modelo Gemini "'.$model.'" no existe o no está disponible para esta clave. Configura GEMINI_MODEL con un modelo vigente, por ejemplo gemini-3.8-flash.',
-            429 => 'Gemini alcanzó el límite de solicitudes (429). Espera un momento o revisa tu cuota en Google AI Studio.',
+            401, 403 => 'Gemini rechazó la autenticación (HTTP '.$status.'). Revisa GEMINI_API_KEY y los permisos del proyecto en Google AI Studio. Detalle: '.$body,
+            404 => 'El modelo Gemini "'.$model.'" no existe o no esta disponible para esta clave. Configura GEMINI_MODEL con un modelo vigente.',
+            429 => 'Gemini alcanzo el limite de solicitudes (429). Espera un momento o revisa tu cuota en Google AI Studio.',
             default => 'Gemini devolvió HTTP '.($status ?? 'desconocido').': '.$body,
         };
     }

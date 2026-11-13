@@ -9,9 +9,12 @@ Sistema web desarrollado con Laravel y Bootstrap para la gestión de agricultura
 
 Este proyecto fue desarrollado por alumnos de la **Universidad Evangélica del Paraguay (UEP)**:
 
-- Sixinio
-- Bruno
-- Ever
+- Sixinio Cristobal
+- Bruno Duran
+- Ever Vega
+- Juan Gutierrez
+- Dahiana Cardozo
+- Elias Vera
 
 
 ## Tabla de Contenidos
@@ -149,4 +152,3 @@ Alpine.js (si aplica) — Interactividad ligera
 Integraciones
 NASA APIs — Datos satelitales y climáticos
 Servicios de IA para el chat y las recomendaciones
-

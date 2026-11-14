@@ -61,6 +61,11 @@ class GeminiService
             $response = Http::withHeaders(['x-goog-api-key' => $key])
                 ->connectTimeout(60)
                 ->timeout($timeout)
+                ->retry(3, [1000, 2000, 4000], function ($exception) {
+                    // Solo reintenta ante un 503 (servidores de Google sobrecargados).
+                    return $exception instanceof RequestException
+                        && $exception->response?->status() === 503;
+                })
                 ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", $payload);
 
             $response->throw();

@@ -34,7 +34,7 @@ class RotationEngine
 
         if ($crops->isEmpty()) {
             throw new RuntimeException(
-                'El catálogo de cultivos está vacío. Ejecutá: php artisan db:seed --class=CropSeeder'
+                __('messages.rotation_text.catalog_empty')
             );
         }
 
@@ -195,7 +195,7 @@ class RotationEngine
                 return [
                     'key' => 'actual',
                     'name' => $current->name,
-                    'description' => $current->description ?? 'Rotación actual registrada por el productor.',
+                    'description' => $current->description ?? __('messages.rotation_text.current_registered'),
                     'crops' => $currentCrops,
                     'rotation' => $current,
                     'strategy_type' => 'actual',
@@ -210,8 +210,8 @@ class RotationEngine
 
         return [
             'key' => 'actual',
-            'name' => 'Rotación actual (monocultivo de '.$baseline->name.')',
-            'description' => 'Línea base asumida porque no hay rotación actual registrada para la parcela.',
+            'name' => __('messages.rotation_text.current_monoculture', ['crop' => $baseline->name]),
+            'description' => __('messages.rotation_text.current_baseline'),
             'crops' => [$baseline],
             'rotation' => null,
             'strategy_type' => 'actual',
@@ -226,8 +226,8 @@ class RotationEngine
     protected function waterSavingStrategy(Collection $crops): array
     {
         return $this->makeStrategy(
-            'Ahorro de agua y resiliencia climática',
-            'Prioriza cultivos de bajo requerimiento hídrico, tolerantes a sequía y con raíz profunda.',
+            __('messages.rotation_text.water_name'),
+            __('messages.rotation_text.water_desc'),
             $this->pick($crops, [
                 fn (Crop $crop): float => $this->cropScore($crop, 'water'),
                 fn (Crop $crop): float => $this->cropScore($crop, 'soil'),
@@ -243,8 +243,8 @@ class RotationEngine
     protected function soilHealthStrategy(Collection $crops): array
     {
         return $this->makeStrategy(
-            'Salud del suelo y fertilidad',
-            'Combina leguminosas fijadoras de nitrógeno con cultivos de renta y cobertura.',
+            __('messages.rotation_text.soil_name'),
+            __('messages.rotation_text.soil_desc'),
             $this->pick($crops, [
                 fn (Crop $crop): float => $this->cropScore($crop, 'soil'),
                 fn (Crop $crop): float => $this->cropScore($crop, 'income'),
@@ -260,8 +260,8 @@ class RotationEngine
     protected function incomeStrategy(Collection $crops): array
     {
         return $this->makeStrategy(
-            'Ingreso diversificado y cobertura',
-            'Diversifica el ingreso y mantiene cobertura del suelo para reducir erosión.',
+            __('messages.rotation_text.income_name'),
+            __('messages.rotation_text.income_desc'),
             $this->pick($crops, [
                 fn (Crop $crop): float => $this->cropScore($crop, 'income'),
                 fn (Crop $crop): float => $this->cropScore($crop, 'erosion'),
@@ -335,8 +335,8 @@ class RotationEngine
             }
 
             $unique->push($this->makeStrategy(
-                'Rotación diversificada '.($unique->count() + 1),
-                'Alternativa generada para garantizar al menos tres estrategias comparables.',
+                __('messages.rotation_text.diversified_name', ['number' => $unique->count() + 1]),
+                __('messages.rotation_text.diversified_desc'),
                 $fallback
             ));
 
@@ -420,31 +420,31 @@ class RotationEngine
     protected function why(array $strategy, array $weights, array $context): string
     {
         $labels = [
-            'water_conservation_weight' => 'conservación de agua',
-            'income_weight' => 'ingresos',
-            'soil_health_weight' => 'salud del suelo',
-            'erosion_weight' => 'control de erosión',
-            'market_weight' => 'mercado',
+            'water_conservation_weight' => __('messages.rotation_text.priority_water'),
+            'income_weight' => __('messages.rotation_text.priority_income'),
+            'soil_health_weight' => __('messages.rotation_text.priority_soil'),
+            'erosion_weight' => __('messages.rotation_text.priority_erosion'),
+            'market_weight' => __('messages.rotation_text.priority_market'),
         ];
 
         arsort($weights);
         $top = array_slice($weights, 0, 3, true);
         $priorityText = collect($top)
-            ->map(fn (int $weight, string $key): string => "{$labels[$key]} (peso {$weight})")
+            ->map(fn (int $weight, string $key): string => "{$labels[$key]} (".__('messages.weight')." {$weight})")
             ->implode(', ');
 
         $cropNames = collect($strategy['crops'])->pluck('name')->implode(' → ');
         $extra = '';
 
         if ($context['soil_moisture_low']) {
-            $extra .= ' Además, SMAP indica humedad baja ('.$this->fmt($context['smap_mean'], 3).' m³/m³).';
+            $extra .= __('messages.rotation_text.low_moisture', ['value' => $this->fmt($context['smap_mean'], 3)]);
         }
 
         if ($context['heavy_rain']) {
-            $extra .= ' GPM IMERG registra días de lluvia intensa, por eso se prioriza la cobertura del suelo.';
+            $extra .= __('messages.rotation_text.heavy_rain');
         }
 
-        return "Se propone {$cropNames} porque tus prioridades ponderan {$priorityText}.{$extra}";
+        return __('messages.rotation_text.why', ['crops' => $cropNames, 'priorities' => $priorityText, 'extra' => $extra]);
     }
 
     /**
@@ -455,53 +455,56 @@ class RotationEngine
         $lines = [];
 
         if ($context['smap_count'] > 0) {
-            $lines[] = sprintf(
-                'SMAP: humedad media %s m³/m³ en 90 días (%d observaciones).',
-                $this->fmt($context['smap_mean'], 3),
-                (int) $context['smap_count']
-            );
+            $lines[] = __('messages.rotation_text.smap_evidence', [
+                'value' => $this->fmt($context['smap_mean'], 3),
+                'count' => (int) $context['smap_count'],
+            ]);
         } else {
-            $lines[] = 'SMAP: sin observaciones en los últimos 90 días.';
+            $lines[] = __('messages.rotation_text.smap_missing');
         }
 
         if ($context['gpm_count'] > 0) {
             $parts = [];
 
             if ($context['gpm_max_daily'] !== null) {
-                $parts[] = 'máx. diario '.$this->fmt($context['gpm_max_daily']).' mm';
+                $parts[] = __('messages.rotation_text.gpm_daily_max', ['value' => $this->fmt($context['gpm_max_daily'])]);
             }
 
             if ($context['gpm_heavy_rain_days'] !== null) {
-                $parts[] = $this->fmt($context['gpm_heavy_rain_days'], 0).' días con lluvia >50 mm';
+                $parts[] = __('messages.rotation_text.gpm_heavy_days', ['count' => $this->fmt($context['gpm_heavy_rain_days'], 0)]);
             }
 
             if ($context['gpm_dry_streak'] !== null) {
-                $parts[] = 'racha seca de '.$this->fmt($context['gpm_dry_streak'], 0).' días';
+                $parts[] = __('messages.rotation_text.gpm_dry_streak', ['count' => $this->fmt($context['gpm_dry_streak'], 0)]);
             }
 
-            $lines[] = 'GPM IMERG: '.(($parts !== []) ? implode(', ', $parts) : 'gránulos disponibles sin valor extraído').'.';
+            $lines[] = __('messages.rotation_text.gpm_available', [
+                'details' => ($parts !== []) ? implode(', ', $parts) : __('messages.rotation_text.gpm_no_value'),
+            ]);
         } else {
-            $lines[] = 'GPM IMERG: sin observaciones en los últimos 90 días.';
+            $lines[] = __('messages.rotation_text.gpm_missing');
         }
 
         if ($context['power_count'] > 0) {
             $parts = [];
 
             if ($context['power_temp_min'] !== null) {
-                $parts[] = 'Tmin '.$this->fmt($context['power_temp_min']).' °C';
+                $parts[] = __('messages.rotation_text.power_min_temp', ['value' => $this->fmt($context['power_temp_min'])]);
             }
 
             if ($context['power_precip_sum'] !== null) {
-                $parts[] = 'lluvia acumulada '.$this->fmt($context['power_precip_sum']).' mm';
+                $parts[] = __('messages.rotation_text.power_rain_sum', ['value' => $this->fmt($context['power_precip_sum'])]);
             }
 
-            $lines[] = 'NASA POWER: '.(($parts !== []) ? implode(', ', $parts) : 'datos disponibles').'.';
+            $lines[] = __('messages.rotation_text.power_available', [
+                'details' => ($parts !== []) ? implode(', ', $parts) : __('messages.rotation_text.power_no_value'),
+            ]);
         } else {
-            $lines[] = 'NASA POWER: sin datos para las coordenadas de la parcela.';
+            $lines[] = __('messages.rotation_text.power_missing');
         }
 
         if ($context['ndvi_mean'] !== null) {
-            $lines[] = 'NDVI promedio: '.$this->fmt($context['ndvi_mean'], 2).'.';
+            $lines[] = __('messages.rotation_text.ndvi_average', ['value' => $this->fmt($context['ndvi_mean'], 2)]);
         }
 
         return implode(' ', $lines);
@@ -516,27 +519,27 @@ class RotationEngine
 
         foreach ($crops as $crop) {
             if ($crop->nitrogen_fixing) {
-                $benefits[] = "{$crop->name}: fija nitrógeno y reduce la necesidad de fertilizante.";
+                $benefits[] = __('messages.rotation_text.benefit_nitrogen', ['crop' => $crop->name]);
             }
 
             if ($crop->drought_tolerant || $crop->water_demand === 'bajo') {
-                $benefits[] = "{$crop->name}: bajo requerimiento hídrico o tolerancia a sequía.";
+                $benefits[] = __('messages.rotation_text.benefit_water', ['crop' => $crop->name]);
             }
 
             if ($crop->erosion_control === 'alto') {
-                $benefits[] = "{$crop->name}: buena cobertura y control de erosión.";
+                $benefits[] = __('messages.rotation_text.benefit_erosion', ['crop' => $crop->name]);
             }
 
             if ($crop->deep_root) {
-                $benefits[] = "{$crop->name}: raíz profunda que mejora la infiltración.";
+                $benefits[] = __('messages.rotation_text.benefit_roots', ['crop' => $crop->name]);
             }
 
             if ($crop->market_value === 'alto') {
-                $benefits[] = "{$crop->name}: alto valor de mercado.";
+                $benefits[] = __('messages.rotation_text.benefit_market', ['crop' => $crop->name]);
             }
 
             if ($crop->forage_value === 'alto') {
-                $benefits[] = "{$crop->name}: aporta forraje para diversificar el ingreso.";
+                $benefits[] = __('messages.rotation_text.benefit_forage', ['crop' => $crop->name]);
             }
         }
 
@@ -544,7 +547,7 @@ class RotationEngine
 
         return $benefits !== []
             ? implode(' ', $benefits)
-            : 'La rotación diversifica cultivos y reduce la dependencia de un solo mercado.';
+            : __('messages.rotation_text.benefit_default');
     }
 
     /**
@@ -557,27 +560,27 @@ class RotationEngine
 
         foreach ($crops as $crop) {
             if ($crop->water_demand === 'alto') {
-                $risks[] = "{$crop->name} tiene demanda hídrica alta; si la humedad sigue baja puede perder rendimiento.";
+                $risks[] = __('messages.rotation_text.risk_water', ['crop' => $crop->name]);
             }
 
             if ($context['heavy_rain'] && $crop->erosion_control === 'bajo') {
-                $risks[] = "{$crop->name} deja poco rastrojo y con lluvias intensas aumenta el riesgo de erosión.";
+                $risks[] = __('messages.rotation_text.risk_erosion', ['crop' => $crop->name]);
             }
         }
 
         if ($context['frost_risk']) {
-            $risks[] = 'NASA POWER registra Tmin menor a 3 °C; el catálogo no modela tolerancia a heladas, validar fechas de siembra.';
+            $risks[] = __('messages.rotation_text.risk_frost');
         }
 
         if ($context['smap_count'] === 0) {
-            $risks[] = 'Sin SMAP reciente, el balance hídrico de la rotación es incierto.';
+            $risks[] = __('messages.rotation_text.risk_smap');
         }
 
         $risks = array_values(array_unique($risks));
 
         return $risks !== []
             ? implode(' ', $risks)
-            : 'Sin riesgos críticos con los datos disponibles; igualmente requiere validación local.';
+            : __('messages.rotation_text.risk_default');
     }
 
     /**
@@ -589,26 +592,26 @@ class RotationEngine
         $gaps = [];
 
         if ($context['smap_count'] === 0) {
-            $gaps[] = 'Sin observaciones SMAP en 90 días.';
+            $gaps[] = __('messages.rotation_text.gap_smap');
         }
 
         if ($context['gpm_count'] === 0) {
-            $gaps[] = 'Sin observaciones GPM IMERG en 90 días.';
+            $gaps[] = __('messages.rotation_text.gap_gpm');
         }
 
         if ($context['power_count'] === 0) {
-            $gaps[] = 'Sin datos NASA POWER para las coordenadas de la parcela.';
+            $gaps[] = __('messages.rotation_text.gap_power');
         }
 
         if ($field->soil_ph === null || $field->soil_organic_matter_pct === null) {
-            $gaps[] = 'Falta análisis de suelo (pH y materia orgánica).';
+            $gaps[] = __('messages.rotation_text.gap_soil');
         }
 
         if ($strategy['assumed']) {
-            $gaps[] = 'No se registró la rotación actual; se asumió un monocultivo como línea base.';
+            $gaps[] = __('messages.rotation_text.gap_current');
         }
 
-        $gaps[] = 'No se modelan precios, heladas ni malezas específicas; validar con el productor.';
+        $gaps[] = __('messages.rotation_text.gap_models');
 
         return implode(' ', $gaps);
     }

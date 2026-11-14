@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,10 +12,7 @@
     @stack('head')
 </head>
 <body>
-    <div style="position:fixed;top:10px;right:10px;z-index:9999;">
-        <a href="{{ route('lang.switch','es') }}" class="btn btn-sm btn-outline-secondary">ES</a>
-        <a href="{{ route('lang.switch','en') }}" class="btn btn-sm btn-outline-secondary">EN</a>
-    </div>
+    <div style="position:fixed;top:10px;right:10px;z-index:9999;">@include('partials.language-switch')</div>
     <header class="p-2">
         <img src="{{ asset('img/logo.png') }}" alt="Field Shift" style="height:2.5rem;">
     </header>

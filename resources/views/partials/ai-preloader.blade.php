@@ -1,10 +1,10 @@
 {{-- Preloader IA: overlay mientras el proveedor configurado (Gemini u Ollama) genera la respuesta. --}}
 @php
     $aiMessages = $aiMessages ?? [
-        'Conectando con la IA…',
-        'Leyendo datos climáticos NASA de tu zona…',
-        'La IA está analizando el contexto…',
-        'Generando la recomendación…',
+        __('messages.ai_connecting'),
+        __('messages.ai_reading_climate'),
+        __('messages.ai_analyzing'),
+        __('messages.ai_writing_reply'),
     ];
     $aiTimeoutMs = $aiTimeoutMs ?? 720000; // margen amplio para Gemini u Ollama en CPU
 @endphp
@@ -68,10 +68,10 @@
 <div id="ai-preloader" role="status" aria-live="polite">
     <div class="ai-preloader-card">
         <div class="ai-orb"><span></span><span></span><span></span><div class="ai-orb-core"></div></div>
-        <h2 class="h6 mb-1">La IA está analizando…</h2>
-        <p class="ai-preloader-status mb-0" id="ai-preloader-status">Conectando con la IA…</p>
+        <h2 class="h6 mb-1">{{ __('messages.ai_analyzing') }}</h2>
+        <p class="ai-preloader-status mb-0" id="ai-preloader-status">{{ __('messages.ai_connecting') }}</p>
         <p class="ai-preloader-elapsed mb-1" id="ai-preloader-elapsed">0 s</p>
-        <p class="ai-preloader-hint mb-0">El proveedor de IA puede tardar unos segundos o varios minutos según la carga.</p>
+        <p class="ai-preloader-hint mb-0">{{ __('messages.ai_delay_hint') }}</p>
     </div>
 </div>
 
@@ -141,7 +141,7 @@
                                 return data.payload.errors[key][0];
                             }).join(' ');
                         }
-                        options.onError(message || 'La IA no pudo responder (HTTP ' + data.status + ').');
+                        options.onError(message || @json(__('messages.ai_failed_http', ['status' => '__STATUS__'])).replace('__STATUS__', data.status));
                         return;
                     }
                     options.onSuccess(data.payload);
@@ -150,8 +150,8 @@
                     clearTimeout(guard);
                     stop();
                     options.onError(error.name === 'AbortError'
-                        ? 'La IA tardó más de ' + Math.round(timeoutMs / 60000) + ' minutos. Reintenta o revisa la configuración del proveedor.'
-                        : 'No se pudo contactar con la IA: ' + error.message);
+                        ? @json(__('messages.ai_timeout', ['minutes' => '__MINUTES__'])).replace('__MINUTES__', Math.round(timeoutMs / 60000))
+                        : @json(__('messages.ai_connection_failed', ['error' => '__ERROR__'])).replace('__ERROR__', error.message));
                 });
         });
     };

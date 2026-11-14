@@ -17,6 +17,33 @@ class AgroModulesTest extends TestCase
         $this->get('/recomendaciones')->assertStatus(200)->assertSee('Siembra');
     }
 
+    public function test_cambio_de_idioma_se_aplica_al_front_y_a_las_respuestas_de_ia(): void
+    {
+        $this->from('/recomendaciones')->get('/lang/en')->assertRedirect('/recomendaciones');
+        $this->get('/recomendaciones')
+            ->assertSee('lang="en"', false)
+            ->assertSee('Planting')
+            ->assertSee('Irrigation');
+
+        Http::fake([
+            '*11434*' => Http::response([
+                'message' => ['content' => 'Plant in rows.'],
+            ]),
+        ]);
+
+        $this->postJson('/recomendaciones', ['topic' => 'siembra'])->assertOk();
+
+        Http::assertSent(fn (Request $request) => str_contains(
+            json_encode($request['messages'], JSON_THROW_ON_ERROR),
+            'Respond in English.'
+        ));
+
+        $this->from('/recomendaciones')->get('/lang/es')->assertRedirect('/recomendaciones');
+        $this->get('/recomendaciones')
+            ->assertSee('lang="es"', false)
+            ->assertSee('Siembra');
+    }
+
     public function test_reforestacion_muestra_formulario_y_especies(): void
     {
         $this->get('/reforestacion')->assertStatus(200)->assertSee('Kurupa');

@@ -1,16 +1,19 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Field Shift · Asistente</title>
+    <title>{{ __('messages.chat_title') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 <div class="container py-4" style="max-width: 720px">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 mb-0">{{ __('messages.agro_assistant') }}</h1>
-        <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
+        <div class="d-flex gap-2 align-items-center">
+            @include('partials.language-switch')
+            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">{{ __('messages.back_to_dashboard') }}</a>
+        </div>
     </div>
 
     @if ($errors->has('llm'))
@@ -23,7 +26,7 @@
         <div class="card-body" id="chat-history">
             @forelse ($history as $msg)
                 <div class="mb-2 p-2 rounded {{ $msg['role'] === 'user' ? 'bg-primary text-white' : 'bg-white border' }}">
-                    <small class="d-block opacity-75">{{ $msg['role'] }}</small>
+                    <small class="d-block opacity-75">{{ $msg['role'] === 'user' ? __('messages.role_user') : __('messages.role_assistant') }}</small>
                     {{ $msg['content'] }}
                 </div>
             @empty
@@ -34,10 +37,10 @@
 
     <form method="POST" action="{{ route('chat.store') }}" id="chat-form" class="card card-body">
         @csrf
-        <textarea name="message" class="form-control mb-2" rows="3" required placeholder="¿Riesgo de helada esta semana?"></textarea>
+        <textarea name="message" class="form-control mb-2" rows="3" required placeholder="{{ __('messages.chat_placeholder') }}"></textarea>
         <div class="mb-2">
             <select id="city" class="form-select">
-                <option value="">— Ciudad (Paraguay) —</option>
+                <option value="">{{ __('messages.select_city') }}</option>
                 <option value="-25.2637,-57.5759">Asunción</option>
                 <option value="-25.3394,-57.5463">San Lorenzo</option>
                 <option value="-25.3413,-57.5330">Luque</option>
@@ -47,19 +50,19 @@
             </select>
         </div>
         <div class="row g-2">
-            <div class="col"><input type="number" step="any" name="lat" id="lat" class="form-control" placeholder="Lat"></div>
-            <div class="col"><input type="number" step="any" name="lon" id="lon" class="form-control" placeholder="Lon"></div>
-            <div class="col-auto"><button class="btn btn-success">Enviar</button></div>
+            <div class="col"><input type="number" step="any" name="lat" id="lat" class="form-control" placeholder="{{ __('messages.latitude') }}" aria-label="{{ __('messages.latitude') }}"></div>
+            <div class="col"><input type="number" step="any" name="lon" id="lon" class="form-control" placeholder="{{ __('messages.longitude') }}" aria-label="{{ __('messages.longitude') }}"></div>
+            <div class="col-auto"><button class="btn btn-success">{{ __('messages.send') }}</button></div>
         </div>
     </form>
 </div>
 
 @include('partials.ai-preloader', [
     'aiMessages' => [
-        'Conectando con la IA…',
-        'Leyendo datos climáticos y NDVI de la NASA…',
-        'La IA recuerda el contexto de la conversación…',
-        'Redactando la respuesta…',
+        __('messages.ai_connecting'),
+        __('messages.ai_reading_climate'),
+        __('messages.ai_chat_context'),
+        __('messages.ai_writing_reply'),
     ],
 ])
 
@@ -85,7 +88,7 @@
             user.className = 'mb-2 p-2 rounded bg-primary text-white';
             var userRole = document.createElement('small');
             userRole.className = 'd-block opacity-75';
-            userRole.textContent = 'user';
+            userRole.textContent = @json(__('messages.role_user'));
             user.appendChild(userRole);
             user.appendChild(document.createTextNode(question));
             history.appendChild(user);
@@ -94,7 +97,7 @@
             assistant.className = 'mb-2 p-2 rounded bg-white border';
             var assistantRole = document.createElement('small');
             assistantRole.className = 'd-block opacity-75';
-            assistantRole.textContent = 'assistant';
+            assistantRole.textContent = @json(__('messages.role_assistant'));
             assistant.appendChild(assistantRole);
             assistant.appendChild(document.createTextNode(data.reply));
             history.appendChild(assistant);

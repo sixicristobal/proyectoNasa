@@ -59,7 +59,10 @@ class RotationComparisonController extends Controller
 
         return redirect()
             ->route('rotations.index', ['field_id' => $field->id])
-            ->with('status', 'Se generaron '.$recommendations->count().' estrategias para '.$field->name.'.');
+            ->with('status', __('messages.generated_strategies', [
+                'count' => $recommendations->count(),
+                'field' => $field->name,
+            ]));
     }
 
     public function storeField(Request $request): RedirectResponse
@@ -106,6 +109,6 @@ class RotationComparisonController extends Controller
 
         return redirect()
             ->route('rotations.index', ['field_id' => $field->id])
-            ->with('status', 'Parcela "'.$field->name.'" creada. Ahora podés generar sus rotaciones.');
+            ->with('status', __('messages.field_created', ['field' => $field->name]));
     }
 }

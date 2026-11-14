@@ -31,7 +31,13 @@ class SyncNasaPowerData extends Command
         [$start, $end] = $range;
 
         $count = $power->syncToDatabase($lat, $lon, $start, $end);
-        $this->info("Sincronizadas {$count} filas para ({$lat}, {$lon}) {$start}..{$end}.");
+        $this->info(__('messages.sync_completed', [
+            'count' => $count,
+            'lat' => $lat,
+            'lon' => $lon,
+            'start' => $start,
+            'end' => $end,
+        ]));
 
         return self::SUCCESS;
     }
@@ -50,20 +56,23 @@ class SyncNasaPowerData extends Command
             $end = $endInput !== '' ? Carbon::parse($endInput)->startOfDay() : now()->startOfDay();
             $start = $startInput !== '' ? Carbon::parse($startInput)->startOfDay() : $end->copy()->subDays($days - 1);
         } catch (\Throwable) {
-            $this->error('Fechas inválidas. Usa --start=YYYY-MM-DD y --end=YYYY-MM-DD.');
+            $this->error(__('messages.sync_invalid_dates'));
 
             return null;
         }
 
         if ($start->greaterThan($end)) {
-            $this->error('La fecha --start no puede ser posterior a --end.');
+            $this->error(__('messages.sync_start_after_end'));
 
             return null;
         }
 
         $rangeDays = (int) $start->diffInDays($end) + 1;
         if ($rangeDays > self::MAX_RANGE_DAYS) {
-            $this->error('El rango no puede superar '.self::MAX_RANGE_DAYS." días (recibido {$rangeDays}).");
+            $this->error(__('messages.sync_range_too_long', [
+                'max' => self::MAX_RANGE_DAYS,
+                'count' => $rangeDays,
+            ]));
 
             return null;
         }

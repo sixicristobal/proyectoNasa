@@ -55,7 +55,7 @@ class RecommendationController extends Controller
         $rows = $query->get();
 
         if ($rows->isEmpty()) {
-            return 'Sin registros recientes en nasa_agro_data.';
+            return __('messages.no_recent_data');
         }
 
         return $rows->map(fn ($r) => sprintf(

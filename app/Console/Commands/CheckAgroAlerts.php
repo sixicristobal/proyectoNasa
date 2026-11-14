@@ -12,13 +12,19 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\App;
 
-#[Signature('agro:check-alerts {--lat=} {--lon=} {--days=10}')]
+#[Signature('agro:check-alerts {--lat=} {--lon=} {--days=10} {--locale=}')]
 #[Description('Revisa últimos datos NASA y genera alertas locales (sequía/helada/lluvia/tormenta) con dictamen de IA')]
 class CheckAgroAlerts extends Command
 {
     public function handle(LlmService $llm): int
     {
+        $locale = $this->option('locale');
+        if (in_array($locale, ['en', 'es'], true)) {
+            App::setLocale($locale);
+        }
+
         $lat = $this->option('lat') !== null ? (float) $this->option('lat') : null;
         $lon = $this->option('lon') !== null ? (float) $this->option('lon') : null;
         $days = max(3, (int) $this->option('days'));
@@ -76,14 +82,15 @@ class CheckAgroAlerts extends Command
             try {
                 $message = $llm->chat([[
                     'role' => 'user',
-                    'content' => "Eres un experto agroclimático en Paraguay. Riesgo detectado: {$risk['risk_type']}. {$risk['detail']}\n\n"
-                        ."Datos recientes:\n{$context}\n\nRedacta en español, en 3-4 líneas, qué debe hacer un pequeño productor esta semana.",
+                    'content' => "You are an agroclimate expert in Paraguay. Detected risk: {$risk['risk_type']}. {$risk['detail']}\n\n"
+                        ."Recent data:\n{$context}\n\nGive a 3–4 line recommendation on what a small-scale farmer should do this week. "
+                        .__('messages.prompt_language', ['language' => app()->getLocale() === 'en' ? 'English' : 'Spanish']),
                 ]], timeout: 300);
             } catch (\Throwable $e) {
                 // Si la IA está apagada, sin clave o lenta, guarda la alerta igual con el
                 // detalle técnico corto (el diagnóstico completo queda en el log).
                 Log::warning('IA no disponible en agro:check-alerts: '.$e->getMessage());
-                $message = $risk['detail'].' (Dictamen IA pendiente: el servicio de IA no respondió a tiempo, se reintentará en la próxima revisión.)';
+                $message = __('messages.alert_ai_pending');
             }
 
             $alert = Alert::create([

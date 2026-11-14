@@ -1,13 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Field Shift · Tablero</title>
-    <div style="position:fixed;top:10px;right:10px;z-index:9999;">
-        <a href="{{ route('lang.switch','es') }}" class="btn btn-sm btn-outline-secondary">ES</a>
-        <a href="{{ route('lang.switch','en') }}" class="btn btn-sm btn-outline-secondary">EN</a>
-    </div>
+    <title>{{ __('messages.field_shift_dashboard') }}</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('android-chrome-192x192.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
@@ -48,13 +44,14 @@
                     <img src="{{ asset('img/logo.png') }}" alt="Field Shift" style="width:2rem;height:2rem;object-fit:contain;">
                 </span>
                 <div>
-                    <div class="text-uppercase text-muted" style="font-size:.65rem;letter-spacing:.08em;">Field Shift · Tablero DSS</div>
-                    <strong>Parcela monitoreada</strong>
+                    <div class="text-uppercase text-muted" style="font-size:.65rem;letter-spacing:.08em;">{{ __('messages.field_shift_dashboard') }}</div>
+                    <strong>{{ __('messages.monitored_field') }}</strong>
                 </div>
             </div>
+            @include('partials.language-switch')
             <span class="badge bg-fs-soft text-success d-none d-sm-inline-block">
                 <span class="spinner-grow spinner-grow-sm fs-live-dot" role="status"></span>
-                NASA POWER · {{ $latest?->date->format('Y-m-d') ?? 'sin datos' }}
+                NASA POWER · {{ $latest?->date->format('Y-m-d') ?? __('messages.no_data') }}
             </span>
         </div>
     </div>
@@ -87,38 +84,37 @@
     <form method="GET" action="{{ route('dashboard') }}" id="range-form" class="my-3">
         <div class="row g-2">
             <div class="col-5 col-lg-3">
-                <input type="number" step="any" name="lat" class="form-control" placeholder="Lat (-25.2637)" value="{{ $lat }}">
+                <input type="number" step="any" name="lat" class="form-control" placeholder="{{ __('messages.latitude_placeholder') }}" aria-label="{{ __('messages.latitude') }}" value="{{ $lat }}">
             </div>
             <div class="col-5 col-lg-3">
-                <input type="number" step="any" name="lon" class="form-control" placeholder="Lon (-57.5759)" value="{{ $lon }}">
+                <input type="number" step="any" name="lon" class="form-control" placeholder="{{ __('messages.longitude_placeholder') }}" aria-label="{{ __('messages.longitude') }}" value="{{ $lon }}">
             </div>
             <div class="col-2 col-lg-2">
-                <button class="btn btn-success bg-fs-green border-0 w-100">Ver</button>
+                <button class="btn btn-success bg-fs-green border-0 w-100">{{ __('messages.view') }}</button>
             </div>
             <div class="col-12 col-lg-4 d-flex gap-2 justify-content-lg-end flex-wrap">
-                <a href="{{ route('chat.index') }}" class="btn btn-sm btn-outline-success">Asistente</a>
-                <a href="{{ route('recommendations.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Recomendaciones</a>
-                <a href="{{ route('reforestation.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">Reforestación</a>
-                <a href="{{ route('imagery.index') }}" class="btn btn-sm btn-outline-dark">🛰️ Imágenes</a>
+                <a href="{{ route('chat.index') }}" class="btn btn-sm btn-outline-success">{{ __('messages.assistant') }}</a>
+                <a href="{{ route('recommendations.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">{{ __('messages.recommendations') }}</a>
+                <a href="{{ route('reforestation.index') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-block">{{ __('messages.reforestation') }}</a>
+                <a href="{{ route('imagery.index') }}" class="btn btn-sm btn-outline-dark">🛰️ {{ __('messages.nasa_imagery') }}</a>
             </div>
         </div>
         <div class="row g-2 mt-0">
             <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
-                <small class="text-uppercase text-muted">Rango</small>
-                <input type="date" name="desde" class="form-control form-control-sm" style="width:auto" value="{{ $desde }}" aria-label="Desde">
+                <small class="text-uppercase text-muted">{{ __('messages.range') }}</small>
+                <input type="date" name="desde" class="form-control form-control-sm" style="width:auto" value="{{ $desde }}" aria-label="{{ __('messages.from') }}">
                 <span class="text-muted">→</span>
-                <input type="date" name="hasta" class="form-control form-control-sm" style="width:auto" value="{{ $hasta }}" aria-label="Hasta">
-                <div class="btn-group btn-group-sm" role="group" aria-label="Rangos rápidos">
-                    <button type="button" class="btn btn-outline-secondary" data-days="7">7 días</button>
-                    <button type="button" class="btn btn-outline-secondary" data-days="30">30 días</button>
-                    <button type="button" class="btn btn-outline-secondary" data-days="90">90 días</button>
-                    <button type="button" class="btn btn-outline-secondary" data-days="clear">Todo</button>
+                <input type="date" name="hasta" class="form-control form-control-sm" style="width:auto" value="{{ $hasta }}" aria-label="{{ __('messages.to') }}">
+                <div class="btn-group btn-group-sm" role="group" aria-label="{{ __('messages.quick_ranges') }}">
+                    <button type="button" class="btn btn-outline-secondary" data-days="7">{{ __('messages.days', ['count' => 7]) }}</button>
+                    <button type="button" class="btn btn-outline-secondary" data-days="30">{{ __('messages.days', ['count' => 30]) }}</button>
+                    <button type="button" class="btn btn-outline-secondary" data-days="90">{{ __('messages.days', ['count' => 90]) }}</button>
+                    <button type="button" class="btn btn-outline-secondary" data-days="clear">{{ __('messages.all') }}</button>
                 </div>
             </div>
         </div>
     </form>
 
-    {{-- {{ __('messages.module_access') }} --}}
     <div class="row g-2 mb-3">
         <div class="col-6 col-lg-3">
             <a href="{{ route('chat.index') }}" class="btn btn-success bg-fs-green border-0 w-100 py-3"><span class="material-symbols-outlined d-block">chat</span>{{ __('messages.assistant') }}</a>
@@ -130,7 +126,7 @@
             <a href="{{ route('reforestation.index') }}" class="btn btn-outline-success w-100 py-3"><span class="material-symbols-outlined d-block">forest</span>{{ __('messages.reforestation') }}</a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="#alertas" class="btn btn-outline-secondary w-100 py-3"><span class="material-symbols-outlined d-block">cloud</span>Alertas</a>
+            <a href="#alertas" class="btn btn-outline-secondary w-100 py-3"><span class="material-symbols-outlined d-block">cloud</span>{{ __('messages.alerts') }}</a>
         </div>
         <div class="col-6 col-lg-3">
             <a href="{{ route('rotations.index') }}" class="btn btn-outline-success w-100 py-3"><span class="material-symbols-outlined d-block">agriculture</span>{{ __('messages.rotations') }}</a>
@@ -143,19 +139,19 @@
                 @csrf
                 <input type="hidden" name="lat" value="{{ $lat }}">
                 <input type="hidden" name="lon" value="{{ $lon }}">
-                <select name="days" class="form-select form-select-sm mb-1" aria-label="Rango a sincronizar">
-                    <option value="10" selected>Últimos 10 días</option>
-                    <option value="30">Últimos 30 días</option>
-                    <option value="90">Últimos 90 días</option>
-                    <option value="365">Últimos 365 días</option>
+                <select name="days" class="form-select form-select-sm mb-1" aria-label="{{ __('messages.sync_range') }}">
+                    <option value="10" selected>{{ __('messages.last_days', ['count' => 10]) }}</option>
+                    <option value="30">{{ __('messages.last_days', ['count' => 30]) }}</option>
+                    <option value="90">{{ __('messages.last_days', ['count' => 90]) }}</option>
+                    <option value="365">{{ __('messages.last_days', ['count' => 365]) }}</option>
                 </select>
                 <div class="d-flex gap-1 mb-1">
-                    <input type="date" name="desde" class="form-control form-control-sm" aria-label="Desde (opcional)">
-                    <input type="date" name="hasta" class="form-control form-control-sm" aria-label="Hasta (opcional)">
+                    <input type="date" name="desde" class="form-control form-control-sm" aria-label="{{ __('messages.from_optional') }}">
+                    <input type="date" name="hasta" class="form-control form-control-sm" aria-label="{{ __('messages.to_optional') }}">
                 </div>
                 <button class="btn btn-warning w-100 py-2"><span class="material-symbols-outlined fs-6">refresh</span>{{ __('messages.refresh_data') }}</button>
             </form>
-            <small class="text-muted d-block text-center mt-1">Sincroniza NASA → revisa alertas con IA. Las fechas exactas (desde/hasta) tienen prioridad sobre el rango.</small>
+            <small class="text-muted d-block text-center mt-1">{{ __('messages.sync_help') }}</small>
         </div>
     </div>
 
@@ -165,7 +161,7 @@
             <div class="col-12 col-lg-3">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <small class="text-uppercase text-muted">Índice NDVI <span class="material-symbols-outlined fs-6 fs-green">trending_up</span></small>
+                        <small class="text-uppercase text-muted">{{ __('messages.ndvi_index') }} <span class="material-symbols-outlined fs-6 fs-green">trending_up</span></small>
                         <div class="fs-kpi" id="kpi-ndvi">{{ $latest->ndvi_value !== null ? number_format($latest->ndvi_value, 2) : '—' }}</div>
                         <span class="badge bg-fs-soft text-success">NDVI {{ $latest->date->format('Y-m-d') }}</span>
                     </div>
@@ -174,7 +170,7 @@
             <div class="col-4 col-lg-3">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <small class="text-uppercase text-muted">Temp <span class="material-symbols-outlined fs-6">thermostat</span></small>
+                        <small class="text-uppercase text-muted">{{ __('messages.temperature') }} <span class="material-symbols-outlined fs-6">thermostat</span></small>
                         <div class="fs-kpi" id="kpi-temp">{{ $latest->temp !== null ? number_format($latest->temp, 1) : '—' }}<small class="fs-6 fw-normal">°C</small></div>
                     </div>
                 </div>
@@ -182,7 +178,7 @@
             <div class="col-4 col-lg-3">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <small class="text-uppercase text-muted">Humedad <span class="material-symbols-outlined fs-6 text-primary">water_drop</span></small>
+                        <small class="text-uppercase text-muted">{{ __('messages.humidity') }} <span class="material-symbols-outlined fs-6 text-primary">water_drop</span></small>
                         <div class="fs-kpi" id="kpi-hum">{{ $latest->humidity !== null ? number_format($latest->humidity, 0) : '—' }}<small class="fs-6 fw-normal">%</small></div>
                     </div>
                 </div>
@@ -190,7 +186,7 @@
             <div class="col-4 col-lg-3">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <small class="text-uppercase text-muted">Lluvia <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
+                        <small class="text-uppercase text-muted">{{ __('messages.rainfall') }} <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
                         <div class="fs-kpi" id="kpi-rain">{{ $latest->precip !== null ? number_format($latest->precip, 1) : '—' }}<small class="fs-6 fw-normal">mm</small></div>
                     </div>
                 </div>
@@ -202,9 +198,9 @@
             <div class="col-6">
                 <div class="card fs-card h-100 bg-fs-sand">
                     <div class="card-body">
-                        <small class="text-uppercase text-muted">Lluvia acumulada {{ $periodLabel }} <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
+                        <small class="text-uppercase text-muted">{{ __('messages.accumulated_rainfall', ['period' => $periodLabel]) }} <span class="material-symbols-outlined fs-6 text-primary">rainy</span></small>
                         <div class="fs-kpi">{{ number_format($monthAccum, 1) }}<small class="fs-6 fw-normal">mm</small></div>
-                        <span class="badge bg-primary">{{ $monthRainDays }} días con lluvia</span>
+                        <span class="badge bg-primary">{{ __('messages.rainy_days', ['count' => $monthRainDays]) }}</span>
                     </div>
                 </div>
             </div>
@@ -212,11 +208,11 @@
             <div class="col-6">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <small class="text-uppercase text-muted">Viento <span class="material-symbols-outlined fs-6">air</span></small>
+                        <small class="text-uppercase text-muted">{{ __('messages.wind') }} <span class="material-symbols-outlined fs-6">air</span></small>
                         <div class="fs-kpi">{{ $latest->wind_speed !== null ? number_format((float) $latest->wind_speed * 3.6, 0) : '—' }}<small class="fs-6 fw-normal">km/h</small></div>
                         <span class="badge bg-fs-soft text-success">
                             @if ($latest->temp_max !== null || $latest->temp_min !== null)
-                                Máx {{ $latest->temp_max !== null ? number_format($latest->temp_max, 1).'°' : '—' }} · Mín {{ $latest->temp_min !== null ? number_format($latest->temp_min, 1).'°' : '—' }}
+                                {{ __('messages.maximum') }} {{ $latest->temp_max !== null ? number_format($latest->temp_max, 1).'°' : '—' }} · {{ __('messages.minimum') }} {{ $latest->temp_min !== null ? number_format($latest->temp_min, 1).'°' : '—' }}
                             @else
                                 {{ $latest->date->format('Y-m-d') }}
                             @endif
@@ -231,7 +227,7 @@
             <div class="col-12 col-lg-8">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <h2 class="h6">Lluvia diaria — {{ $periodTitle }} (mm)</h2>
+                        <h2 class="h6">{{ __('messages.daily_rainfall', ['period' => $periodTitle]) }}</h2>
                         <canvas id="precipChart" height="140"></canvas>
                     </div>
                 </div>
@@ -240,7 +236,7 @@
             <div class="col-12 col-lg-4">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <h2 class="h6">Lluvias y tormentas del mes {{ $periodLabel }} (≥10 mm)</h2>
+                        <h2 class="h6">{{ __('messages.rain_events', ['period' => $periodLabel]) }}</h2>
                         <ul class="list-group list-group-flush">
                             @forelse ($rainEvents as $e)
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
@@ -252,7 +248,7 @@
                                     </span>
                                 </li>
                             @empty
-                                <li class="list-group-item px-0 text-muted">Sin eventos ≥10 mm en el mes.</li>
+                                <li class="list-group-item px-0 text-muted">{{ __('messages.no_rain_events') }}</li>
                             @endforelse
                         </ul>
                     </div>
@@ -265,7 +261,7 @@
             <div class="col-12 col-lg-8">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <h2 class="h6">Curva de salud hídrica (NDVI)</h2>
+                        <h2 class="h6">{{ __('messages.water_health_curve') }}</h2>
                         <canvas id="ndviChart" height="140"></canvas>
                     </div>
                 </div>
@@ -274,7 +270,7 @@
             <div class="col-12 col-lg-4">
                 <div class="card fs-card h-100">
                     <div class="card-body">
-                        <h2 class="h6">Últimos registros NASA POWER</h2>
+                        <h2 class="h6">{{ __('messages.latest_nasa_records') }}</h2>
                         <ul class="list-group list-group-flush">
                             @foreach ($recent as $r)
                                 <li class="list-group-item px-0 d-flex justify-content-between">
@@ -283,7 +279,7 @@
                                 </li>
                             @endforeach
                         </ul>
-                        <small class="text-muted">{{ $total }} registros en total.</small>
+                        <small class="text-muted">{{ __('messages.total_records', ['count' => $total]) }}</small>
                     </div>
                 </div>
             </div>
@@ -291,11 +287,11 @@
     @else
         @if ($hasRange)
             <div class="alert alert-info">
-                Sin registros entre <code>{{ $desde ?? 'inicio' }}</code> y <code>{{ $hasta ?? 'hoy' }}</code>.
-                Ajusta el rango o pulsa <strong>{{ __('messages.refresh_data') }}</strong>.
+                {{ __('messages.no_records_range', ['from' => $desde ?? __('messages.start'), 'to' => $hasta ?? __('messages.today')]) }}
+                {{ __('messages.adjust_range_or_refresh', ['refresh' => __('messages.refresh_data')]) }}
             </div>
         @else
-            <div class="alert alert-info">Sin registros en <code>nasa_agro_data</code>. Pulsa <strong>{{ __('messages.refresh_data') }}</strong> para traer datos NASA POWER.</div>
+            <div class="alert alert-info">{{ __('messages.no_records_database', ['table' => 'nasa_agro_data', 'refresh' => __('messages.refresh_data')]) }}</div>
         @endif
     @endif
 
@@ -312,16 +308,16 @@
         ];
     @endphp
     <div class="card fs-card mb-3" id="alertas">
-        <div class="card-header bg-transparent">Últimas alertas (Laravel + IA)</div>
+        <div class="card-header bg-transparent">{{ __('messages.latest_alerts') }}</div>
         <ul class="list-group list-group-flush">
             @forelse ($alerts as $alert)
                 <li class="list-group-item">
-                    <span class="badge {{ $severity[$alert->risk_type] ?? 'bg-secondary' }}">{{ str_replace('_', ' ', $alert->risk_type) }}</span>
-                    <small class="text-muted">· {{ $alert->created_at->format('Y-m-d H:i') }}{{ $alert->data_date ? ' · dato '.$alert->data_date->format('Y-m-d') : '' }}</small>
+                    <span class="badge {{ $severity[$alert->risk_type] ?? 'bg-secondary' }}">{{ __('messages.risk_types.'.$alert->risk_type) }}</span>
+                    <small class="text-muted">· {{ $alert->created_at->format('Y-m-d H:i') }}{{ $alert->data_date ? ' · '.__('messages.data_date').' '.$alert->data_date->format('Y-m-d') : '' }}</small>
                     <br>{{ $alert->message }}
                 </li>
             @empty
-                <li class="list-group-item text-muted">Sin alertas todavía.</li>
+                <li class="list-group-item text-muted">{{ __('messages.no_alerts') }}</li>
             @endforelse
         </ul>
     </div>
@@ -330,11 +326,11 @@
 {{-- Bottom nav solo móvil, estilo dasResponsive --}}
 <nav class="fixed-bottom fs-bottom-nav shadow d-lg-none">
     <div class="d-flex justify-content-around align-items-center h-100">
-        <a href="{{ route('dashboard') }}" class="text-center text-success text-decoration-none"><span class="material-symbols-outlined d-block">analytics</span>Tablero</a>
-        <a href="{{ route('chat.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">chat</span>Chat</a>
+        <a href="{{ route('dashboard') }}" class="text-center text-success text-decoration-none"><span class="material-symbols-outlined d-block">analytics</span>{{ __('messages.dashboard') }}</a>
+        <a href="{{ route('chat.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">chat</span>{{ __('messages.chat') }}</a>
         <a href="{{ route('rotations.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">agriculture</span>{{ __('messages.rotations') }}</a>
-        <a href="{{ route('reforestation.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">forest</span>Reforestar</a>
-        <a href="#alertas" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">cloud</span>Alertas</a>
+        <a href="{{ route('reforestation.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">forest</span>{{ __('messages.reforest') }}</a>
+        <a href="#alertas" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">cloud</span>{{ __('messages.alerts') }}</a>
     </div>
 </nav>
 
@@ -346,7 +342,7 @@
             labels: @json($labels),
             datasets: [
                 {label: 'NDVI', data: @json($ndvi), tension: 0.3, borderColor: '#0d631b'},
-                {label: 'Temp (°C)', data: @json($temps), tension: 0.3, yAxisID: 'y1', borderColor: '#b26a00'}
+                {label: @json(__('messages.temperature') . ' (°C)'), data: @json($temps), tension: 0.3, yAxisID: 'y1', borderColor: '#b26a00'}
             ]
         },
         options: { scales: { y: {min: -0.2, max: 1}, y1: {position: 'right', grid: {drawOnChartArea: false}}} }
@@ -356,7 +352,7 @@
         data: {
             labels: @json($monthLabels),
             datasets: [
-                {label: 'Lluvia (mm)', data: @json($monthPrecips), backgroundColor: '#2f7fe0'}
+                {label: @json(__('messages.rainfall') . ' (mm)'), data: @json($monthPrecips), backgroundColor: '#2f7fe0'}
             ]
         },
         options: { scales: { y: {beginAtZero: true}} }

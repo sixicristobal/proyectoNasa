@@ -9,8 +9,6 @@ use Illuminate\View\View;
 
 class ChatController extends Controller
 {
-    protected string $systemPrompt = 'Eres un experto agroecológico en Paraguay. Respondes en español, de forma concisa y práctica para pequeños productores. Usas los datos climáticos y NDVI provistos para recomendar siembra, riego y prevención de sequía/heladas.';
-
     public function index(): View
     {
         return view('chat', [
@@ -36,7 +34,12 @@ class ChatController extends Controller
         );
 
         $messages = array_merge(
-            [['role' => 'system', 'content' => $this->systemPrompt."\n\nDatos recientes:\n".$context]],
+            [[
+                'role' => 'system',
+                'content' => 'You are an agroecology expert in Paraguay. Give concise, practical advice for small-scale farmers. Use the provided climate and NDVI data to advise on planting, irrigation, drought, and frost prevention. '
+                    .__('messages.prompt_language', ['language' => app()->getLocale() === 'en' ? 'English' : 'Spanish'])
+                    ."\n\nRecent data:\n".$context,
+            ]],
             array_slice($history, -6)
         );
 
@@ -73,7 +76,7 @@ class ChatController extends Controller
         $rows = $query->get();
 
         if ($rows->isEmpty()) {
-            return 'Sin registros recientes en nasa_agro_data.';
+            return __('messages.no_recent_data');
         }
 
         $lines = [];

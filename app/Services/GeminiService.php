@@ -57,18 +57,20 @@ class GeminiService
             ];
         }
 
-        try {
+try {
             $response = Http::withHeaders(['x-goog-api-key' => $key])
                 ->connectTimeout(60)
                 ->timeout($timeout)
+                ->throw() // <-- CLAVE: Lanza la excepción para que el retry la atrape
                 ->retry(3, [1000, 2000, 4000], function ($exception) {
-                    // Solo reintenta ante un 503 (servidores de Google sobrecargados).
+                    // Reintenta ante 429 (límite), 500 (error interno) y 503 (sobrecarga).
                     return $exception instanceof RequestException
-                        && $exception->response?->status() === 503;
+                        && in_array($exception->response?->status(), [429, 500, 503]);
                 })
                 ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", $payload);
 
-            $response->throw();
+            // ELIMINADO: $response->throw(); de aquí, ya que se maneja en la cadena de arriba.
+            
         } catch (RequestException $e) {
             throw new \RuntimeException($this->friendlyError($e, $model), previous: $e);
         } catch (ConnectionException $e) {
@@ -76,8 +78,7 @@ class GeminiService
                 'No se pudo conectar con Gemini (timeout '.$timeout.' s). Verifica tu conexión a internet y la clave GEMINI_API_KEY.',
                 previous: $e
             );
-        }
-
+        } 
         $text = (string) data_get($response->json(), 'candidates.0.content.parts.0.text', '');
 
         if ($text === '') {
@@ -94,11 +95,12 @@ class GeminiService
         $status = $e->response?->status();
         $body = (string) $e->response?->body();
 
-        return match ($status) {
+return match ($status) {
             400 => 'Gemini rechazó la solicitud (400). Verifica que GEMINI_API_KEY sea válida y que el modelo "'.$model.'" exista. Detalle: '.$body,
             401, 403 => 'Gemini rechazó la autenticación (HTTP '.$status.'). Revisa GEMINI_API_KEY y los permisos del proyecto en Google AI Studio. Detalle: '.$body,
             404 => 'El modelo Gemini "'.$model.'" no existe o no esta disponible para esta clave. Configura GEMINI_MODEL con un modelo vigente.',
             429 => 'Gemini alcanzo el limite de solicitudes (429). Espera un momento o revisa tu cuota en Google AI Studio.',
+            500, 503 => 'Los servidores de Gemini están experimentando inestabilidad (HTTP '.$status.'). Intenta nuevamente más tarde.',
             default => 'Gemini devolvió HTTP '.($status ?? 'desconocido').': '.$body,
         };
     }

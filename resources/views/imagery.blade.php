@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Field Shift · Imágenes NASA</title>
+    <title>{{ __('messages.imagery_title') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -20,8 +20,8 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
             <div class="text-uppercase text-muted" style="font-size:.65rem;letter-spacing:.08em;">Field Shift · NASA GIBS</div>
-<div class="mt-1"><a href="{{ route('lang.switch','es') }}" class="btn btn-sm btn-outline-secondary">ES</a> <a href="{{ route('lang.switch','en') }}" class="btn btn-sm btn-outline-secondary">EN</a></div>
-            <h1 class="h4 mb-0">🛰️ {{ __('messages.satellite_imagery') }}</h1>
+<div class="mt-1">@include('partials.language-switch')</div>
+<h1 class="h4 mb-0">🛰️ {{ __('messages.satellite_imagery') }}</h1>
         </div>
         <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-success">← {{ __('messages.dashboard') }}</a>
     </div>
@@ -42,18 +42,18 @@
                 </select>
             </div>
             <div class="col-5 col-lg-2">
-                <label class="form-label small text-muted">Lat</label>
-                <input type="number" step="any" name="lat" class="form-control" value="{{ $lat }}">
+                <label class="form-label small text-muted">{{ __('messages.latitude') }}</label>
+                <input type="number" step="any" name="lat" class="form-control" value="{{ $lat }}" aria-label="{{ __('messages.latitude') }}">
             </div>
             <div class="col-5 col-lg-2">
-                <label class="form-label small text-muted">Lon</label>
-                <input type="number" step="any" name="lon" class="form-control" value="{{ $lon }}">
+                <label class="form-label small text-muted">{{ __('messages.longitude') }}</label>
+                <input type="number" step="any" name="lon" class="form-control" value="{{ $lon }}" aria-label="{{ __('messages.longitude') }}">
             </div>
             <div class="col-2 col-lg-2 d-flex align-items-end">
-                <button class="btn btn-success w-100">Ver</button>
+                <button class="btn btn-success w-100">{{ __('messages.view_layer') }}</button>
             </div>
             <div class="col-12">
-                <small class="text-muted">{{ $layers[$layer]['desc'] }} · Fecha mostrada: <strong>{{ $date }}</strong></small>
+                <small class="text-muted">{{ $layers[$layer]['desc'] }} · {{ __('messages.displayed_date') }}: <strong>{{ $date }}</strong></small>
             </div>
         </div>
     </form>
@@ -61,15 +61,15 @@
     <div class="card fs-card mb-3">
         <div class="card-body p-2">
             <div id="map"></div>
-            <small class="text-muted d-block mt-2 px-2">Endpoint: {{ $templates[$layer] }}</small>
+            <small class="text-muted d-block mt-2 px-2">{{ __('messages.endpoint') }}: {{ $templates[$layer] }}</small>
         </div>
     </div>
 
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ $snapshot }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary"><span class="material-symbols-outlined fs-6">download</span> Descargar PNG (Worldview)</a>
-        <a href="{{ $worldview }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-dark"><span class="material-symbols-outlined fs-6">open_in_new</span> Abrir en NASA Worldview</a>
+        <a href="{{ $snapshot }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary"><span class="material-symbols-outlined fs-6">download</span> {{ __('messages.download_worldview') }}</a>
+        <a href="{{ $worldview }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-dark"><span class="material-symbols-outlined fs-6">open_in_new</span> {{ __('messages.open_worldview') }}</a>
     </div>
-    <p class="text-muted small mt-2">Tip: si un día sale con huecos o nubes, retrocede 1–2 días (el mosaico diario tarda en completarse). La capa 7-2-1 muestra vegetación en verde e inundaciones en azul oscuro.</p>
+    <p class="text-muted small mt-2">{{ __('messages.imagery_tip') }}</p>
 </main>
 
 <script>
@@ -79,7 +79,7 @@
         layers["{{ $key }}"] = L.tileLayer("{{ $tpl }}", {maxZoom: 9, minZoom: 2, attribution: @json($attribution)});
     @endforeach
     layers[@json($layer)].addTo(map);
-    L.marker([{{ $lat }}, {{ $lon }}]).addTo(map).bindPopup("Parcela ({{ $lat }}, {{ $lon }})").openPopup();
+    L.marker([{{ $lat }}, {{ $lon }}]).addTo(map).bindPopup(@json(__('messages.parcel') . " ({$lat}, {$lon})")).openPopup();
     L.control.layers(
         {@foreach ($layers as $key => $meta) "{{ $meta['label'] }}": layers["{{ $key }}"]@if (!$loop->last),@endif @endforeach}
     ).addTo(map);

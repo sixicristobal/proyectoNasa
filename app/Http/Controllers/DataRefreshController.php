@@ -47,13 +47,13 @@ class DataRefreshController extends Controller
             report($e);
 
             return redirect()->route('dashboard', ['lat' => $lat, 'lon' => $lon])
-                ->with('refresh_error', 'No se pudo actualizar desde NASA POWER: '.$e->getMessage());
+                ->with('refresh_error', __('messages.refresh_failed', ['error' => $e->getMessage()]));
         }
 
-        $alertsNote = $this->launchAlertsCheck($lat, $lon, $windowDays);
+        $alertsNote = $this->launchAlertsCheck($lat, $lon, $windowDays, app()->getLocale());
 
         return redirect()->route('dashboard', ['lat' => $lat, 'lon' => $lon])
-            ->with('refresh_status', ($syncOutput !== '' ? $syncOutput.' ' : 'Datos actualizados. ').$alertsNote);
+            ->with('refresh_status', ($syncOutput !== '' ? $syncOutput : __('messages.refresh_succeeded')).' '.$alertsNote);
     }
 
     /**
@@ -71,7 +71,7 @@ class DataRefreshController extends Controller
 
         if ($desde !== null && $hasta !== null && $desde->greaterThan($hasta)) {
             throw ValidationException::withMessages([
-                'desde' => 'La fecha "desde" no puede ser posterior a "hasta".',
+                'desde' => __('messages.date_from_after_to'),
             ]);
         }
 
@@ -81,8 +81,10 @@ class DataRefreshController extends Controller
         $windowDays = (int) $start->diffInDays($end) + 1;
         if ($windowDays > SyncNasaPowerData::MAX_RANGE_DAYS) {
             throw ValidationException::withMessages([
-                'desde' => 'El rango no puede superar '.SyncNasaPowerData::MAX_RANGE_DAYS
-                    ." días (seleccionaste {$windowDays}).",
+                'desde' => __('messages.date_range_too_long', [
+                    'max' => SyncNasaPowerData::MAX_RANGE_DAYS,
+                    'selected' => $windowDays,
+                ]),
             ]);
         }
 
@@ -93,22 +95,23 @@ class DataRefreshController extends Controller
      * Lanza agro:check-alerts desacoplado (puede tardar minutos por la IA).
      * En tests no se lanza para no tocar la BD real ni llamar al proveedor de IA.
      */
-    protected function launchAlertsCheck(float $lat, float $lon, int $days): string
+    protected function launchAlertsCheck(float $lat, float $lon, int $days, string $locale): string
     {
         if (app()->runningUnitTests() || ! function_exists('exec')) {
-            return 'Revisión de alertas: se generará con el scheduler (03:30).';
+            return __('messages.alerts_scheduled');
         }
 
         $php = PHP_BINARY;
         $artisan = base_path('artisan');
         $log = storage_path('logs/agro-alerts-manual.log');
         $cmd = sprintf(
-            '%s %s agro:check-alerts --lat=%s --lon=%s --days=%d >> %s 2>&1 &',
+            '%s %s agro:check-alerts --lat=%s --lon=%s --days=%d --locale=%s >> %s 2>&1 &',
             escapeshellarg($php),
             escapeshellarg($artisan),
             escapeshellarg((string) $lat),
             escapeshellarg((string) $lon),
             $days,
+            escapeshellarg($locale),
             escapeshellarg($log)
         );
 
@@ -117,9 +120,9 @@ class DataRefreshController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return 'Revisión de alertas: se generará con el scheduler (03:30).';
+            return __('messages.alerts_scheduled');
         }
 
-        return 'Revisión de alertas con IA lanzada en segundo plano (ver #alertas en unos minutos).';
+        return __('messages.alerts_started');
     }
 }

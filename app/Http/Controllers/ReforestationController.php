@@ -11,18 +11,18 @@ class ReforestationController extends Controller
 {
     /** Especies nativas de Paraguay con aptitud por suelo y clima. */
     protected array $species = [
-        ['nombre' => 'Lapacho (Tabebuia spp.)', 'suelos' => ['rojo', 'arcilloso'], 'clima' => 'Tolera sequía moderada; ideal Oriental húmeda.'],
-        ['nombre' => "Kurupa'y (Anadenanthera colubrina)", 'suelos' => ['arenoso', 'rojo'], 'clima' => 'Muy tolerante a sequía; apto Chaco y Occidental.'],
-        ['nombre' => 'Yvyra pytã (Peltophorum dubium)', 'suelos' => ['rojo', 'arcilloso', 'arenoso'], 'clima' => 'Rápido crecimiento; tolera heladas leves.'],
-        ['nombre' => 'Petereby (Cordia trichotoma)', 'suelos' => ['rojo', 'arcilloso'], 'clima' => 'Madera valiosa; requiere lluvias >1200 mm/año.'],
-        ['nombre' => 'Cedro (Cedrela fissilis)', 'suelos' => ['rojo'], 'clima' => 'Sensible a heladas fuertes; prefiere valles húmedos.'],
-        ['nombre' => 'Guajayvi (Patagonula americana)', 'suelos' => ['arcilloso', 'rojo'], 'clima' => 'Rústica; buena para cortinas rompeviento.'],
+        ['nombre' => 'Lapacho (Tabebuia spp.)', 'soil_keys' => ['red', 'clay'], 'climate_key' => 'lapacho'],
+        ['nombre' => "Kurupa'y (Anadenanthera colubrina)", 'soil_keys' => ['sandy', 'red'], 'climate_key' => 'kurupay'],
+        ['nombre' => 'Yvyra pytã (Peltophorum dubium)', 'soil_keys' => ['red', 'clay', 'sandy'], 'climate_key' => 'yvyra_pyta'],
+        ['nombre' => 'Petereby (Cordia trichotoma)', 'soil_keys' => ['red', 'clay'], 'climate_key' => 'petereby'],
+        ['nombre' => 'Cedro (Cedrela fissilis)', 'soil_keys' => ['red'], 'climate_key' => 'cedar'],
+        ['nombre' => 'Guajayvi (Patagonula americana)', 'soil_keys' => ['clay', 'red'], 'climate_key' => 'guajayvi'],
     ];
 
     public function index(): View
     {
         return view('reforestation', [
-            'species' => $this->species,
+            'species' => $this->localizedSpecies(),
             'result' => session('reforestation'),
         ]);
     }
@@ -36,7 +36,7 @@ class ReforestationController extends Controller
             'lon' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
-        $catalog = collect($this->species)->map(
+        $catalog = collect($this->localizedSpecies())->map(
             fn ($s) => "- {$s['nombre']} | Suelos: ".implode(', ', $s['suelos'])." | {$s['clima']}"
         )->implode("\n");
 
@@ -47,11 +47,12 @@ class ReforestationController extends Controller
 
         $messages = [[
             'role' => 'user',
-            'content' => "Eres un experto agroforestal en Paraguay. Suelo del productor: {$validated['suelo']}. "
-                .'Objetivo: '.($validated['objetivo'] ?? 'reforestación general').".\n\n"
-                ."Catálogo de especies nativas (usa SOLO estas):\n{$catalog}\n\n"
-                ."Clima reciente en la parcela:\n{$climate}\n\n"
-                .'Recomienda 2-3 especies del catálogo compatibles con el suelo y el clima, con época de plantación y cuidados. Responde en español, conciso.',
+            'content' => "You are an agroforestry expert in Paraguay. Farmer's soil type: {$validated['suelo']}. "
+                .'Objective: '.($validated['objetivo'] ?? 'general reforestation').".\n\n"
+                ."Native species catalog (use ONLY these species):\n{$catalog}\n\n"
+                ."Recent field climate:\n{$climate}\n\n"
+                .'Recommend 2–3 species from the catalog that fit the soil and climate, including planting season and care. '
+                .__('messages.prompt_language', ['language' => app()->getLocale() === 'en' ? 'English' : 'Spanish']),
         ]];
 
         try {
@@ -82,7 +83,7 @@ class ReforestationController extends Controller
         $rows = $query->get();
 
         if ($rows->isEmpty()) {
-            return 'Sin registros recientes en nasa_agro_data.';
+            return __('messages.no_recent_data');
         }
 
         return $rows->map(fn ($r) => sprintf(
@@ -96,5 +97,22 @@ class ReforestationController extends Controller
             $r->wind_speed !== null ? number_format((float) $r->wind_speed * 3.6, 1).' km/h' : 's/d',
             $r->ndvi_value !== null ? number_format((float) $r->ndvi_value, 3) : 'sin dato'
         ))->implode("\n");
+    }
+
+    /**
+     * @return array<int, array{nombre: string, suelos: array<int, string>, clima: string}>
+     */
+    protected function localizedSpecies(): array
+    {
+        return array_map(static function (array $species): array {
+            return [
+                'nombre' => $species['nombre'],
+                'suelos' => array_map(
+                    static fn (string $soil): string => __("messages.species_soils.{$soil}"),
+                    $species['soil_keys']
+                ),
+                'clima' => __("messages.species_climate.{$species['climate_key']}"),
+            ];
+        }, $this->species);
     }
 }

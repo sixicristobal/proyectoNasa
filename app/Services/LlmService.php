@@ -15,8 +15,10 @@ class LlmService
     {
         $messages = [[
             'role' => 'user',
-            'content' => "Eres un ingeniero agrónomo en Paraguay. Tema: {$topic} (siembra, riego o rotación de cultivos). "
-                ."Responde en español, conciso y práctico para pequeños productores.\n\nDatos climáticos recientes:\n{$context}",
+            'content' => "You are an agronomist in Paraguay. Topic: {$topic} (planting, irrigation, or crop rotation). "
+                .'Give concise, practical advice for small-scale farmers. '
+                .__('messages.prompt_language', ['language' => app()->getLocale() === 'en' ? 'English' : 'Spanish'])
+                ."\n\nRecent climate data:\n{$context}",
         ]];
 
         return $this->chat($messages);

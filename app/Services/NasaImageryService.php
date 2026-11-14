@@ -20,28 +20,28 @@ class NasaImageryService
     {
         return [
             'true_color' => [
-                'label' => 'Color verdadero (Terra/MODIS)',
-                'desc' => 'Como lo vería el ojo humano. Nubes, humo, polvo y vegetación.',
+                'label' => __('messages.true_color_terra'),
+                'desc' => __('messages.true_color_description'),
                 'gibs' => 'MODIS_Terra_CorrectedReflectance_TrueColor',
             ],
             'false_color' => [
-                'label' => 'Falso color 7-2-1 (inundación/vegetación)',
-                'desc' => 'Vegetación en verde brillante, agua en azul oscuro/negro. Ideal para ver encharcamientos.',
+                'label' => __('messages.false_color_721'),
+                'desc' => __('messages.false_color_description'),
                 'gibs' => 'MODIS_Terra_CorrectedReflectance_Bands721',
             ],
             'viirs' => [
-                'label' => 'Color verdadero (Suomi NPP/VIIRS)',
-                'desc' => 'Segunda pasada diaria, útil si Terra viene con nubes.',
+                'label' => __('messages.true_color_viirs'),
+                'desc' => __('messages.viirs_description'),
                 'gibs' => 'VIIRS_SNPP_CorrectedReflectance_TrueColor',
             ],
             'smap_soil_moisture' => [
-                'label' => 'Humedad del suelo (SMAP L3)',
-                'desc' => 'Humedad superficial diaria de SMAP (contexto regional, complementa la observación puntual por parcela).',
+                'label' => __('messages.soil_moisture_smap'),
+                'desc' => __('messages.smap_description'),
                 'gibs' => 'SMAP_L3_Active_Passive_Soil_Moisture',
             ],
             'imerg_precipitation' => [
-                'label' => 'Precipitación (GPM IMERG)',
-                'desc' => 'Tasa de precipitación IMERG. Útil para ver eventos extremos y acumulados regionales.',
+                'label' => __('messages.precipitation_imerg'),
+                'desc' => __('messages.imerg_description'),
                 'gibs' => 'IMERG_Precipitation_Rate',
             ],
         ];

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Field Shift · Recomendaciones</title>
+    <title>Field Shift · {{ __('messages.recommendations') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -12,7 +12,10 @@
     <div class="container py-4" style="max-width: 720px">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h4 mb-0">{{ __('messages.recommendations_ai') }}</h1>
-            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
+            <div class="d-flex gap-2 align-items-center">
+                @include('partials.language-switch')
+                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">{{ __('messages.back_to_dashboard') }}</a>
+            </div>
         </div>
 
         @if ($errors->has('llm'))
@@ -26,16 +29,16 @@
             <div class="row g-2">
                 <div class="col-md-4">
                     <select name="topic" class="form-select" required>
-                        <option value="siembra">Siembra</option>
-                        <option value="riego">Riego</option>
-                        <option value="rotacion">Rotación</option>
+                        <option value="siembra">{{ __('messages.topic_planting') }}</option>
+                        <option value="riego">{{ __('messages.topic_irrigation') }}</option>
+                        <option value="rotacion">{{ __('messages.topic_rotation') }}</option>
                     </select>
                 </div>
                 <div class="col"><input type="number" step="any" name="lat" class="form-control"
-                        placeholder="Lat"></div>
+                        placeholder="{{ __('messages.latitude') }}" aria-label="{{ __('messages.latitude') }}"></div>
                 <div class="col"><input type="number" step="any" name="lon" class="form-control"
-                        placeholder="Lon"></div>
-                <div class="col-auto"><button class="btn btn-success">Consultar</button></div>
+                        placeholder="{{ __('messages.longitude') }}" aria-label="{{ __('messages.longitude') }}"></div>
+                <div class="col-auto"><button class="btn btn-success">{{ __('messages.ask') }}</button></div>
             </div>
         </form>
 
@@ -46,17 +49,17 @@
         @endif
 
         <div id="recommendation-result" class="card mb-3 d-none">
-            <div class="card-header bg-transparent">Recomendación de la IA local</div>
+            <div class="card-header bg-transparent">{{ __('messages.local_ai_recommendation') }}</div>
             <div class="card-body" style="white-space: pre-line"></div>
         </div>
     </div>
 
     @include('partials.ai-preloader', [
         'aiMessages' => [
-            'Conectando con la IA…',
-            'Leyendo datos climáticos y NDVI de la NASA…',
-            'La IA analiza el tema elegido…',
-            'Redactando la recomendación agronómica…',
+            __('messages.ai_connecting'),
+            __('messages.ai_reading_climate'),
+            __('messages.ai_analyzing'),
+            __('messages.ai_writing_reply'),
         ],
     ])
 

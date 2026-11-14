@@ -20,20 +20,21 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
             <div class="text-uppercase text-muted" style="font-size:.65rem;letter-spacing:.08em;">Field Shift · NASA GIBS</div>
-            <h1 class="h4 mb-0">🛰️ Imágenes satelitales con color</h1>
+<div class="mt-1"><a href="{{ route('lang.switch','es') }}" class="btn btn-sm btn-outline-secondary">ES</a> <a href="{{ route('lang.switch','en') }}" class="btn btn-sm btn-outline-secondary">EN</a></div>
+            <h1 class="h4 mb-0">🛰️ {{ __('messages.satellite_imagery') }}</h1>
         </div>
-        <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-success">← Tablero</a>
+        <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-success">← {{ __('messages.dashboard') }}</a>
     </div>
 
     {{-- Selector fecha / capa / parcela --}}
     <form method="GET" action="{{ route('imagery.index') }}" class="card fs-card mb-3">
         <div class="card-body row g-2">
             <div class="col-6 col-lg-2">
-                <label class="form-label small text-muted">Fecha</label>
+                <label class="form-label small text-muted">{{ __('messages.date') }}</label>
                 <input type="date" name="fecha" class="form-control" value="{{ $date }}" max="{{ date('Y-m-d') }}">
             </div>
             <div class="col-6 col-lg-4">
-                <label class="form-label small text-muted">Capa (colores)</label>
+                <label class="form-label small text-muted">{{ __('messages.layer_colors') }}</label>
                 <select name="capa" class="form-select">
                     @foreach ($layers as $key => $meta)
                         <option value="{{ $key }}" @selected($layer === $key)>{{ $meta['label'] }}</option>

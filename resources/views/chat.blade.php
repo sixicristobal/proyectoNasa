@@ -9,7 +9,7 @@
 <body class="bg-light">
 <div class="container py-4" style="max-width: 720px">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 mb-0">Asistente agroecológico · Paraguay</h1>
+        <h1 class="h4 mb-0">{{ __('messages.agro_assistant') }}</h1>
         <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
     </div>
 
@@ -27,7 +27,7 @@
                     {{ $msg['content'] }}
                 </div>
             @empty
-                <p class="text-muted mb-0" id="chat-empty">Pregunta sobre siembra, riego, sequía o heladas.</p>
+                <p class="text-muted mb-0" id="chat-empty">{{ __('messages.chat_empty') }}</p>
             @endforelse
         </div>
     </div>

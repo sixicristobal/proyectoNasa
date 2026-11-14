@@ -16,7 +16,7 @@ class GeminiService
     public function chat(array $messages, ?int $timeout = null, array $options = []): string
     {
         $key = (string) config('services.gemini.key');
-        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        $model = (string) config('services.gemini.model', 'gemini-3.6-flash');
         $timeout ??= (int) config('services.gemini.timeout', 120);
 
         if ($key === '') {

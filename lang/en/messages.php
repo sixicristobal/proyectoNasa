@@ -1,0 +1,23 @@
+<?php
+return [
+    'rotations' => 'Rotations',
+    'dashboard' => 'Dashboard',
+    'assistant' => 'Assistant',
+    'recommendations' => 'Recommendations',
+    'reforestation' => 'Reforestation',
+    'alerts' => 'Alerts',
+    'nasa_imagery' => 'NASA Imagery',
+    'module_access' => 'Module access',
+    'refresh_data' => 'Refresh data',
+    'satellite_imagery' => 'Satellite imagery with color',
+    'date' => 'Date',
+    'layer_colors' => 'Layer (colors)',
+    'rotation_comparator' => 'Rotation comparator',
+    'rotation_strategies_desc' => 'Strategies generated with agronomic rules, NASA evidence and your priorities.',
+    'advanced_nasa_data' => 'Advanced NASA Data',
+    'query' => 'Query',
+    'agro_assistant' => 'Agroecological assistant · Paraguay',
+    'chat_empty' => 'Ask about planting, irrigation, drought or frost.',
+    'recommendations_ai' => 'Recommendations (AI)',
+    'reforestation_planner' => 'Reforestation planner (AI)',
+];

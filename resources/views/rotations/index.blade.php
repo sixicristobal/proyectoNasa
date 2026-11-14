@@ -23,13 +23,13 @@
         <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
             <div>
                 <div class="text-uppercase text-muted small">Field Shift · DSS agrícola</div>
-                <h1 class="h4 mb-0">Comparador de rotaciones</h1>
+                <h1 class="h4 mb-0">{{ __('messages.rotation_comparator') }}</h1>
                 <p class="text-muted mb-0 small">
-                    Estrategias generadas con reglas agronómicas, evidencia NASA y tus prioridades.
+                    {{ __('messages.rotation_strategies_desc') }}
                 </p>
             </div>
             <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-success">
-                <span class="material-symbols-outlined fs-6">arrow_back</span> Tablero
+                <span class="material-symbols-outlined fs-6">arrow_back</span> {{ __('messages.dashboard') }}
             </a>
         </div>
 

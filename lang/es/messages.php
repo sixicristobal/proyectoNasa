@@ -1,0 +1,23 @@
+<?php
+return [
+    'rotations' => 'Rotaciones',
+    'dashboard' => 'Tablero',
+    'assistant' => 'Asistente',
+    'recommendations' => 'Recomendaciones',
+    'reforestation' => 'Reforestación',
+    'alerts' => 'Alertas',
+    'nasa_imagery' => 'Imágenes NASA',
+    'module_access' => 'Accesos a módulos',
+    'refresh_data' => 'Actualizar datos',
+    'satellite_imagery' => 'Imágenes satelitales con color',
+    'date' => 'Fecha',
+    'layer_colors' => 'Capa (colores)',
+    'rotation_comparator' => 'Comparador de rotaciones',
+    'rotation_strategies_desc' => 'Estrategias generadas con reglas agronómicas, evidencia NASA y tus prioridades.',
+    'advanced_nasa_data' => 'Datos NASA Avanzados',
+    'query' => 'Consultar',
+    'agro_assistant' => 'Asistente agroecológico · Paraguay',
+    'chat_empty' => 'Pregunta sobre siembra, riego, sequía o heladas.',
+    'recommendations_ai' => 'Recomendaciones (IA)',
+    'reforestation_planner' => 'Planificador de reforestación (IA)',
+];

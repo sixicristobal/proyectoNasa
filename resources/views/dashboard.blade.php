@@ -4,6 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Field Shift · Tablero</title>
+    <div style="position:fixed;top:10px;right:10px;z-index:9999;">
+        <a href="{{ route('lang.switch','es') }}" class="btn btn-sm btn-outline-secondary">ES</a>
+        <a href="{{ route('lang.switch','en') }}" class="btn btn-sm btn-outline-secondary">EN</a>
+    </div>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('android-chrome-192x192.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -38,7 +45,7 @@
         <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
                 <span class="rounded-circle bg-fs-green text-white d-inline-flex align-items-center justify-content-center" style="width:2rem;height:2rem;">
-                    <span class="material-symbols-outlined fs-6">eco</span>
+                    <img src="{{ asset('img/logo.png') }}" alt="Field Shift" style="width:2rem;height:2rem;object-fit:contain;">
                 </span>
                 <div>
                     <div class="text-uppercase text-muted" style="font-size:.65rem;letter-spacing:.08em;">Field Shift · Tablero DSS</div>
@@ -111,25 +118,25 @@
         </div>
     </form>
 
-    {{-- Accesos a módulos --}}
+    {{-- {{ __('messages.module_access') }} --}}
     <div class="row g-2 mb-3">
         <div class="col-6 col-lg-3">
-            <a href="{{ route('chat.index') }}" class="btn btn-success bg-fs-green border-0 w-100 py-3"><span class="material-symbols-outlined d-block">chat</span>Asistente</a>
+            <a href="{{ route('chat.index') }}" class="btn btn-success bg-fs-green border-0 w-100 py-3"><span class="material-symbols-outlined d-block">chat</span>{{ __('messages.assistant') }}</a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="{{ route('recommendations.index') }}" class="btn btn-primary w-100 py-3"><span class="material-symbols-outlined d-block">psychology</span>Recomendaciones</a>
+            <a href="{{ route('recommendations.index') }}" class="btn btn-primary w-100 py-3"><span class="material-symbols-outlined d-block">psychology</span>{{ __('messages.recommendations') }}</a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="{{ route('reforestation.index') }}" class="btn btn-outline-success w-100 py-3"><span class="material-symbols-outlined d-block">forest</span>Reforestación</a>
+            <a href="{{ route('reforestation.index') }}" class="btn btn-outline-success w-100 py-3"><span class="material-symbols-outlined d-block">forest</span>{{ __('messages.reforestation') }}</a>
         </div>
         <div class="col-6 col-lg-3">
             <a href="#alertas" class="btn btn-outline-secondary w-100 py-3"><span class="material-symbols-outlined d-block">cloud</span>Alertas</a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="{{ route('rotations.index') }}" class="btn btn-outline-success w-100 py-3"><span class="material-symbols-outlined d-block">crop_rotation</span>Rotaciones</a>
+            <a href="{{ route('rotations.index') }}" class="btn btn-outline-success w-100 py-3"><span class="material-symbols-outlined d-block">agriculture</span>{{ __('messages.rotations') }}</a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="{{ route('imagery.index') }}" class="btn btn-outline-dark w-100 py-3"><span class="material-symbols-outlined d-block">satellite_alt</span>Imágenes NASA</a>
+            <a href="{{ route('imagery.index') }}" class="btn btn-outline-dark w-100 py-3"><span class="material-symbols-outlined d-block">satellite_alt</span>{{ __('messages.nasa_imagery') }}</a>
         </div>
         <div class="col-6 col-lg-3">
             <form method="POST" action="{{ route('data.refresh') }}">
@@ -146,7 +153,7 @@
                     <input type="date" name="desde" class="form-control form-control-sm" aria-label="Desde (opcional)">
                     <input type="date" name="hasta" class="form-control form-control-sm" aria-label="Hasta (opcional)">
                 </div>
-                <button class="btn btn-warning w-100 py-2"><span class="material-symbols-outlined fs-6">refresh</span>Actualizar datos</button>
+                <button class="btn btn-warning w-100 py-2"><span class="material-symbols-outlined fs-6">refresh</span>{{ __('messages.refresh_data') }}</button>
             </form>
             <small class="text-muted d-block text-center mt-1">Sincroniza NASA → revisa alertas con IA. Las fechas exactas (desde/hasta) tienen prioridad sobre el rango.</small>
         </div>
@@ -285,10 +292,10 @@
         @if ($hasRange)
             <div class="alert alert-info">
                 Sin registros entre <code>{{ $desde ?? 'inicio' }}</code> y <code>{{ $hasta ?? 'hoy' }}</code>.
-                Ajusta el rango o pulsa <strong>Actualizar datos</strong>.
+                Ajusta el rango o pulsa <strong>{{ __('messages.refresh_data') }}</strong>.
             </div>
         @else
-            <div class="alert alert-info">Sin registros en <code>nasa_agro_data</code>. Pulsa <strong>Actualizar datos</strong> para traer datos NASA POWER.</div>
+            <div class="alert alert-info">Sin registros en <code>nasa_agro_data</code>. Pulsa <strong>{{ __('messages.refresh_data') }}</strong> para traer datos NASA POWER.</div>
         @endif
     @endif
 
@@ -325,7 +332,7 @@
     <div class="d-flex justify-content-around align-items-center h-100">
         <a href="{{ route('dashboard') }}" class="text-center text-success text-decoration-none"><span class="material-symbols-outlined d-block">analytics</span>Tablero</a>
         <a href="{{ route('chat.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">chat</span>Chat</a>
-        <a href="{{ route('rotations.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">crop_rotation</span>Rotaciones</a>
+        <a href="{{ route('rotations.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">agriculture</span>{{ __('messages.rotations') }}</a>
         <a href="{{ route('reforestation.index') }}" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">forest</span>Reforestar</a>
         <a href="#alertas" class="text-center text-muted text-decoration-none"><span class="material-symbols-outlined d-block">cloud</span>Alertas</a>
     </div>

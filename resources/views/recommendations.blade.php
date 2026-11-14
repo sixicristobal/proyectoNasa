@@ -11,7 +11,7 @@
 <body class="bg-light">
     <div class="container py-4" style="max-width: 720px">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h4 mb-0">Recomendaciones (IA)</h1>
+            <h1 class="h4 mb-0">{{ __('messages.recommendations_ai') }}</h1>
             <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
         </div>
 

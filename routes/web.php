@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Session;
+
 use App\Http\Controllers\AdvancedDataController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
@@ -31,3 +33,10 @@ Route::post('/reforestacion', [ReforestationController::class, 'store'])->name('
 Route::get('/rotaciones', [RotationComparisonController::class, 'index'])->name('rotations.index');
 Route::post('/rotaciones', [RotationComparisonController::class, 'store'])->name('rotations.store');
 Route::post('/rotaciones/parcela', [RotationComparisonController::class, 'storeField'])->name('rotations.fields.store');
+
+Route::get('/lang/{locale}', function ($locale) {
+    if (in_array($locale, ['es', 'en'])) {
+        Session::put('locale', $locale);
+    }
+    return redirect()->back();
+})->name('lang.switch');

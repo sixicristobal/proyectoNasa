@@ -6,11 +6,17 @@
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
+@include('partials.preloader')
 <div class="max-w-6xl mx-auto px-6 py-8">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">{{ __('messages.advanced_nasa_data') }}</h1>
     @include('partials.language-switch')
   </div>
+  @if(session('download_error'))
+    <div class="bg-red-900/40 border border-red-700 text-red-200 rounded px-4 py-3 mb-6" role="alert">
+      {{ session('download_error') }}
+    </div>
+  @endif
   <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
     <select name="servicio" class="bg-slate-800 rounded px-3 py-2">
       @foreach(['ecostress'=>'ECOSTRESS','srtm'=>'SRTM','modis_lst'=>'MODIS LST','modis_et'=>'MODIS ET','landsat'=>'Landsat'] as $k=>$v)
@@ -32,7 +38,13 @@
           <td class="py-2">{{ $g['id'] ?? $g['producer_granule_id'] ?? '-' }}</td>
           <td>{{ $g['time_start'] ?? '-' }}</td>
           <td>{{ $g['time_end'] ?? '-' }}</td>
-          <td class="truncate max-w-xs">{{ collect($g['links'] ?? [])->pluck('href')->first() }}</td>
+          <td class="truncate max-w-xs">
+            @if(! empty($g['_download']))
+              <a href="{{ $g['_download'] }}" class="text-indigo-400 underline" title="{{ __('messages.download_via_server') }}">{{ __('messages.download') }}</a>
+            @else
+              -
+            @endif
+          </td>
         </tr>
       @endforeach
       </tbody>
@@ -42,4 +54,3 @@
 </div>
 </body>
 </html>
-" filePath="/var/www/html/ProyectoNasa/ProyectoNASA/resources/views/advanced-data.blade.php

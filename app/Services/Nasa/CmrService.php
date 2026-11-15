@@ -32,7 +32,8 @@ class CmrService
         Carbon $start,
         Carbon $end,
         int $pageSize = 10,
-        array $extra = []
+        array $extra = [],
+        bool $withTemporal = true
     ): array {
         $this->assertCoordinates($lat, $lon);
 
@@ -43,15 +44,20 @@ class CmrService
         $query = array_merge([
             'short_name' => $shortName,
             'point' => "{$lon},{$lat}",
-            'temporal' => $start->copy()->utc()->toIso8601ZuluString()
-                .','.$end->copy()->endOfDay()->utc()->toIso8601ZuluString(),
             'page_size' => $pageSize,
         ], $extra);
+
+        // Los datasets estáticos (p. ej. SRTM) no tienen gránulos recientes:
+        // aplicarles `temporal` devuelve siempre 0 resultados.
+        if ($withTemporal) {
+            $query['temporal'] = $start->copy()->utc()->toIso8601ZuluString()
+                .','.$end->copy()->endOfDay()->utc()->toIso8601ZuluString();
+        }
 
         Log::info('[NASA CMR] search granules', [
             'short_name' => $shortName,
             'point' => $query['point'],
-            'temporal' => $query['temporal'],
+            'temporal' => $query['temporal'] ?? null,
         ]);
 
         $response = Http::timeout(60)

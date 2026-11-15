@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
+@include('partials.preloader')
 <div class="container py-4" style="max-width: 720px">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 mb-0">{{ __('messages.agro_assistant') }}</h1>
@@ -35,7 +36,7 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('chat.store') }}" id="chat-form" class="card card-body">
+    <form method="POST" action="{{ route('chat.store') }}" id="chat-form" class="card card-body" data-ai-form>
         @csrf
         <textarea name="message" class="form-control mb-2" rows="3" required placeholder="{{ __('messages.chat_placeholder') }}"></textarea>
         <div class="mb-2">

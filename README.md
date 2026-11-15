@@ -1,154 +1,93 @@
 ![Logo ProyectoNASA](https://assets.spaceappschallenge.org/media/images/logoterereJape.2e16d0ba.fill-300x250.png)
 
-# ProyectoNASA
+# Field Shift: Adapting Farms with NASA Data
 
-Sistema web desarrollado con Laravel y Bootstrap para la gestión de agricultura regenerativa, basado en datos satelitales y climáticos proporcionados por la NASA. Permite el monitoreo de cultivos y campos, la planificación de rotaciones, la visualización de imágenes satelitales, así como la generación de recomendaciones y alertas.
+**"Empowering local farmers in Paraguay to fight climate change through regenerative agriculture, powered by NASA's Earth observation data."**
 
+## Authors
 
-## Autores
+This project was developed by students from **Universidad Evangélica del Paraguay (UEP)**:
 
-Este proyecto fue desarrollado por alumnos de la **Universidad Evangélica del Paraguay (UEP)**:
-
-- Sixinio Cristobal
+- Sixinio Cristóbal
 - Bruno Duran
 - Ever Vega
 - Juan Gutierrez
 - Dahiana Cardozo
 - Elias Vera
 
+## Table of Contents
 
-## Tabla de Contenidos
+- [The Problem](#the-problem)
+- [The Solution](#the-solution)
+- [How We Used NASA Data](#how-we-used-nasa-data)
+- [AI Integration](#ai-integration)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Project Structure](#project-structure)
+- [Main Routes](#main-routes)
+- [Technologies Used](#technologies-used)
+- [Our Hackathon Journey](#our-hackathon-journey)
+- [License](#license)
 
-- [Descripción](#descripción)
-- [Características](#características)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Configuración](#configuración)
-- [Desarrollo](#desarrollo)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Rutas Principales](#rutas-principales)
-- [Funcionalidades](#funcionalidades)
-- [Tecnologías Utilizadas](#tecnologías-utilizadas)
-- [Contribución](#contribución)
-- [Licencia](#licencia)
+## The Problem: Why Field Shift?
 
-## Descripción
+In regions like Paraguay, small and medium-scale farmers face unpredictable climate shifts, soil degradation, and water scarcity. Traditional farming relies on historical intuition, which is no longer effective against rapid climate change. 
 
-ProyectoNASA es una plataforma web que integra datos satelitales y climatológicos proporcionados por la NASA para promover prácticas de agricultura regenerativa. La aplicación permite a agricultores y gestores de campos monitorear el estado de sus cultivos, planificar rotaciones, recibir recomendaciones inteligentes y visualizar imágenes satelitales actualizadas.
+We discovered that farmers lack access to real-time, actionable environmental data. While NASA provides incredible satellite observations, the raw data is too complex for an average farmer to interpret. They need a bridge between high-level satellite data and daily field decisions.
 
-El objetivo principal es facilitar la toma de decisiones basada en datos científicos, mejorando la sostenibilidad del suelo, la productividad y la resiliencia ante el cambio climático.
+## The Solution
 
-## Características
+Field Shift is a Laravel-based web platform that acts as an intelligent translator. It fetches raw satellite data (precipitation, soil moisture, surface temperature) and processes it into a simple, actionable dashboard for regenerative agriculture.
 
-- Integración con datos de la NASA: información satelital y meteorológica actualizada.
-- Gestión de campos y cultivos: registro y monitoreo centralizado.
-- Planificación de rotaciones: optimización de la salud del suelo.
-- Visualización de imágenes satelitales: análisis geoespacial de parcelas.
-- Chat con IA: asistente inteligente para consultas agrícolas.
-- Recomendaciones personalizadas: basadas en datos y mejores prácticas regenerativas.
-- Alertas: notificaciones sobre eventos climáticos o estados críticos.
-- Módulo de reforestación: seguimiento de iniciativas de recuperación vegetal.
-- Dashboard interactivo: métricas clave y visualizaciones en tiempo real.
+### Who Benefits?
+1. **Local Farmers:** They receive daily alerts, crop rotation plans, and AI-driven recommendations tailored to their specific plots without needing a degree in data science.
+2. **Agricultural Consultants (Agroecologists):** They can monitor multiple fields using advanced vegetation indices (NDVI) and satellite imagery to provide better guidance.
+3. **The Environment:** By promoting regenerative practices (like optimized crop rotation and reforestation), the system helps restore soil health and sequester carbon.
 
-## Requisitos
+## How We Used NASA Data
 
-Antes de comenzar, asegúrate de tener instalado:
+Our project heavily relies on NASA's Earth observation APIs. We built dedicated backend services to fetch and process this data:
 
-- PHP 8.3 o superior
+*   **NASA POWER (Prediction of Worldwide Energy Resources):** Used to gather daily meteorological data and historical climate patterns for specific farm coordinates.
+*   **GPM (Global Precipitation Measurement):** We extract near real-time precipitation data to alert farmers about drought risks or heavy rainfall.
+*   **SMAP (Soil Moisture Active Passive):** Critical for understanding soil moisture levels, allowing our system to recommend optimal planting or irrigation times.
+*   **Landsat & MODIS:** Used to calculate vegetation indices (like NDVI) to monitor crop health and identify stress areas in the fields.
+*   **ECOSTRESS & SRTM:** Integrated for surface temperature monitoring and topographical context.
+
+All NASA data is parsed, processed, and stored directly as JSON in our MariaDB database for rapid querying and analysis.
+
+## AI Integration for Actionable Insights
+
+We integrated an AI assistant that reads the NASA data stored in our MariaDB. Instead of showing a farmer a raw temperature graph, the AI analyzes the data and provides conversational advice, such as: *"Based on the SMAP soil moisture data from the last 3 days, wait until Thursday to plant your cover crops."* 
+
+## Features
+
+- **NASA Data Integration:** Up-to-date satellite and meteorological information.
+- **Farm and Crop Management:** Centralized registration and monitoring.
+- **Crop Rotation Planning:** Optimizing soil health.
+- **Satellite Imagery Visualization:** Geospatial analysis of plots.
+- **AI Chat:** Intelligent assistant for agricultural queries.
+- **Personalized Recommendations:** Based on data and regenerative best practices.
+- **Alerts:** Notifications about climatic events or critical states.
+- **Reforestation Module:** Tracking plant recovery initiatives.
+- **Interactive Dashboard:** Key metrics and real-time visualizations.
+
+## Requirements
+
+Before starting, ensure you have the following installed:
+
+- PHP 8.3 or higher
 - Composer
-- Node.js 18 o superior y npm
-- Base de datos: MySQL 8 o superior / MariaDB
-- Git (opcional, para clonar el repositorio)
+- Node.js 18 or higher and npm
+- Database: MariaDB (required for native JSON storage) / MySQL 8+
+- Git (optional, to clone the repository)
 
-## Instalación
+## Installation
 
-1. Clona el repositorio:
+1. Clone the repository:
 
 ```bash
-git clone https://github.com/sixicristobal/proyectoNasa.git
+git clone [https://github.com/sixicristobal/proyectoNasa.git](https://github.com/sixicristobal/proyectoNasa.git)
 cd ProyectoNASA
-
-2- Instala las dependencias de PHP y JavaScript:
-composer install
-npm install
-
-3- Configura el archivo de entorno:
-cp .env.example .env
-php artisan key:generate
-
-4- Ejecuta las migraciones:
-php artisan migrate
-
-Configuración
-Edita el archivo .env según tu entorno:
-
-APP_NAME=ProyectoNASA
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=mariadb
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=proyecto_nasa
-DB_USERNAME=root
-DB_PASSWORD=
-
-# API de la NASA
-NASA_API_KEY=tu_api_key_aqui
-
-Estructura del Proyecto
-ProyectoNASA/
-├── app/
-│   ├── Http/Controllers/     # Controladores de la aplicación
-│   ├── Models/               # Modelos Eloquent
-│   └── Services/             # Servicios (API NASA, IA, etc.)
-├── database/
-│   ├── migrations/           # Migraciones de la base de datos
-│   └── seeders/              # Datos iniciales
-├── resources/
-│   ├── css/                  # Estilos Tailwind
-│   ├── js/                   # Scripts (Vite)
-│   └── views/                # Plantillas Blade
-├── routes/
-│   └── web.php               # Rutas web
-├── public/                   # Archivos públicos
-├── .env.example              # Plantilla de variables de entorno
-├── composer.json             # Dependencias PHP
-└── package.json              # Dependencias JS
-
-Rutas Principales
-Ruta 	                    Descripción 
-/	                        Dashboard con datos agrícolas actualizados
-/imagenes	                Visualización de imágenes satelitales
-/datos-avanzados	        Análisis avanzado de datos climáticos y agronómicos
-/chat	                    Chat interactivo con asistente de IA
-/recomendaciones	        Recomendaciones personalizadas por campo
-/reforestacion	            Seguimiento de proyectos de reforestación
-/rotaciones	                Gestión y planificación de rotaciones de cultivos
-Funcionalidades             Principales
-Dashboard (/)               Panel central con métricas actualizadas del estado de los                         cultivos, alertas activas y resumen general del sistema.
-Imágenes Satelitales (/imagenes)    Visualización de imágenes de la NASA vinculadas a                           coordenadas específicas de campos y parcelas.
-Datos Avanzados (/datos-avanzados) Análisis profundo de variables climáticas, índices de                          vegetación (NDVI) y otros indicadores agronómicos.
-Chat IA (/chat)             Asistente conversacional para resolver dudas sobre prácticas                   regenerativas y recibir orientación personalizada.
-Recomendaciones (/recomendaciones)
-Sistema de sugerencias basado en datos satelitales y el estado actual del campo.
-Reforestación (/reforestacion)
-Módulo para planificar, registrar y monitorear acciones de reforestación.
-Rotaciones (/rotaciones)
-Herramienta para diseñar rotaciones de cultivos que mejoren la fertilidad del suelo y reduzcan plagas.
-
-Tecnologías Utilizadas
-Backend
-Laravel — Framework PHP
-Composer — Gestor de dependencias PHP
-MySQL / MariaDB — Base de datos
-
-Frontend
-Bootstrap — Framework de estilos
-Vite — Bundler de assets
-Alpine.js (si aplica) — Interactividad ligera
-
-Integraciones
-NASA APIs — Datos satelitales y climáticos
-Servicios de IA para el chat y las recomendaciones

@@ -12,6 +12,7 @@
     @stack('head')
 </head>
 <body>
+    @include('partials.preloader')
     <div style="position:fixed;top:10px;right:10px;z-index:9999;">@include('partials.language-switch')</div>
     <header class="p-2">
         <img src="{{ asset('img/logo.png') }}" alt="Field Shift" style="height:2.5rem;">

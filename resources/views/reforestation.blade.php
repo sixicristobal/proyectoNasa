@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
+@include('partials.preloader')
 <div class="container py-4" style="max-width: 720px">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 mb-0">{{ __('messages.reforestation_planner') }}</h1>
@@ -22,7 +23,7 @@
 
     <div id="reforestation-error" class="alert alert-warning d-none"></div>
 
-    <form method="POST" action="{{ route('reforestation.store') }}" id="reforestation-form" class="card card-body mb-3">
+    <form method="POST" action="{{ route('reforestation.store') }}" id="reforestation-form" class="card card-body mb-3" data-ai-form>
         @csrf
         <label class="form-label">{{ __('messages.soil_type') }}</label>
         <input type="text" name="suelo" class="form-control mb-2" required placeholder="{{ __('messages.soil_type_example') }}">

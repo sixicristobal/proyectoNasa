@@ -48,6 +48,6 @@ class ImageryDashboardTest extends TestCase
             ->assertStatus(200)
             ->assertSee('precipChart')
             ->assertSee('Lluvia acumulada')
-            ->assertSee('Lluvias y tormentas del mes');
+            ->assertSee('Eventos de lluvia');
     }
 }

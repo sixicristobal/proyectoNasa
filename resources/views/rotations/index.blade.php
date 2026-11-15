@@ -19,6 +19,7 @@
 </head>
 
 <body>
+@include('partials.preloader')
     <main class="container py-4">
         <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
             <div>

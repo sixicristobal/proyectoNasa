@@ -19,4 +19,3 @@ class ModisExtendedService
         return $this->cmr->searchGranules('MOD16A2', (float) $field->latitude, (float) $field->longitude, $start, $end, $pageSize);
     }
 }
-" filePath="/var/www/html/ProyectoNasa/ProyectoNASA/app/Services/Nasa/ModisExtendedService.php

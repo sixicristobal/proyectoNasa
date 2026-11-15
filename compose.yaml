@@ -43,9 +43,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
-    # --no-reload es obligario para que artisan respete PHP_CLI_SERVER_WORKERS
-    # (sin él, php -S queda mono-proceso y la app se congela durante la inferencia).
-    command: sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000 --no-reload"
+    # Reintenta la migración mientras MariaDB termina de levantar/DNS de Docker
+    # no esté listo; si no, el contenedor salía con código 1 y entraba en bucle.
+    command: ["sh", "docker/entrypoint.sh"]
     networks:
       - nasa
 

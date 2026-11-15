@@ -9,6 +9,7 @@
 </head>
 
 <body class="bg-light">
+@include('partials.preloader')
     <div class="container py-4" style="max-width: 720px">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h4 mb-0">{{ __('messages.recommendations_ai') }}</h1>
@@ -24,7 +25,7 @@
 
         <div id="recommendation-error" class="alert alert-warning d-none"></div>
 
-        <form method="POST" action="{{ route('recommendations.store') }}" id="recommendation-form" class="card card-body mb-3">
+        <form method="POST" action="{{ route('recommendations.store') }}" id="recommendation-form" class="card card-body mb-3" data-ai-form>
             @csrf
             <div class="row g-2">
                 <div class="col-md-4">

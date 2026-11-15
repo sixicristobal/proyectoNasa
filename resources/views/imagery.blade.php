@@ -16,6 +16,7 @@
     </style>
 </head>
 <body>
+@include('partials.preloader')
 <main class="container pt-4">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>

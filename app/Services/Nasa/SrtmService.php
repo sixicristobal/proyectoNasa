@@ -11,7 +11,7 @@ class SrtmService
 
     public function fetch(Field $field, Carbon $start, Carbon $end, string $shortName = 'SRTMGL1', int $pageSize = 5): array
     {
-        return $this->cmr->searchGranules($shortName, (float) $field->latitude, (float) $field->longitude, $start, $end, $pageSize);
+        // SRTM es un dataset estático (vuelo del año 2000): sin filtro temporal.
+        return $this->cmr->searchGranules($shortName, (float) $field->latitude, (float) $field->longitude, $start, $end, $pageSize, [], false);
     }
 }
-" filePath="/var/www/html/ProyectoNasa/ProyectoNASA/app/Services/Nasa/SrtmService.php

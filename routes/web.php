@@ -20,6 +20,7 @@ Route::post('/actualizar', [DataRefreshController::class, 'store'])->name('data.
 
 Route::get('/imagenes', [ImageryController::class, 'index'])->name('imagery.index');
 Route::get('/datos-avanzados', [AdvancedDataController::class, 'index'])->name('advanced.index');
+Route::get('/datos-avanzados/descargar', [AdvancedDataController::class, 'download'])->name('advanced.download');
 
 Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
 Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
